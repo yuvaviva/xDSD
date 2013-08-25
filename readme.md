@@ -19,8 +19,8 @@ Boston, MA 02110-1301, USA.
 
 #gr-dsd
 
-**Author: Clayton Smith
-**Email: <argilo@gmail.com>
+**Author: Clayton Smith**
+**Email: <argilo@gmail.com>**
 
 The goal of this project is to package Digital Speech Decoder (DSD) as
 a GNU Radio block, so that it can be easily used with software radio
