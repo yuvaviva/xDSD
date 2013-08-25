@@ -6,38 +6,24 @@
 
 	This program does not include audio output support. It logs channels to disk by talkgroup name. If you don't specify what talkgroups to log, it logs EVERYTHING.
 """
-from baz import op25
+
 from gnuradio import analog
 from gnuradio import audio
-from gnuradio import blks2
 from gnuradio import blocks
 from gnuradio import eng_notation
 from gnuradio import filter
-from gnuradio import gr
-from gnuradio import window
+
 from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
-from gnuradio.gr import firdes
-from gnuradio.wxgui import fftsink2
-from gnuradio.wxgui import forms
-from gnuradio.wxgui import scopesink2
-from gnuradio.wxgui import waterfallsink2
-from grc_gnuradio import wxgui as grc_wxgui
 from optparse import OptionParser
 import ConfigParser
 import dsd
 import math
 import osmosdr
-import wx
 from gnuradio import gr, gru, blks2, optfir, digital
-from grc_gnuradio import blks2 as grc_blks2
-from gnuradio import audio
-from gnuradio import eng_notation
-from fsk_demod import fsk_demod
-from gnuradio.eng_option import eng_option
-from gnuradio import smartnet
 
-import osmosdr
+
+
 
 
 #from pkt import *
