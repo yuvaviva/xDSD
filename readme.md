@@ -2,26 +2,25 @@
 
  *This file is part of gr-dsd
 
- *gr-dsd is free software; you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation; either version 3, or (at your option)
- any later version.
+*gr-dsd is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
 
- *gr-dsd is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+*gr-dsd is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
- *You should have received a copy of the GNU General Public License
- along with gr-dsd; see the file COPYING.  If not, write to
- the Free Software Foundation, Inc., 51 Franklin Street,
- Boston, MA 02110-1301, USA.
+*You should have received a copy of the GNU General Public License
+along with gr-dsd; see the file COPYING.  If not, write to
+the Free Software Foundation, Inc., 51 Franklin Street,
+Boston, MA 02110-1301, USA.
 
 #gr-dsd
-___
 
 **Author: Clayton Smith
-Email: <argilo@gmail.com>**
+**Email: <argilo@gmail.com>
 
 The goal of this project is to package Digital Speech Decoder (DSD) as
 a GNU Radio block, so that it can be easily used with software radio
@@ -68,7 +67,6 @@ gr-howto-write-a-block sample included with GNU Radio.
 Contributions are welcome!
 
 ##Examples
-____
 By: Luke Berndt <lukekb@gmail.com>
 
 I added the examples to help make it a little easier to get started using the gr-dsd block. I have included a GRC file, a python program and example files on how to use the python program. These are all based off of the OP25 Example file from [Baz] <http://wiki.spench.net/wiki/OP25>.
