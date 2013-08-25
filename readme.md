@@ -1,4 +1,4 @@
- *Copyright 2012 Clayton Smith
+ *Copyright 2012 Clayton Smith*
 
  *This file is part of gr-dsd*
 
@@ -68,6 +68,6 @@ gr-howto-write-a-block sample included with GNU Radio.
 Contributions are welcome!
 
 ##Examples
-By: Luke Berndt <lukekb@gmail.com>
+**By: Luke Berndt <lukekb@gmail.com>**
 
-I added the examples to help make it a little easier to get started using the gr-dsd block. I have included a GRC file, a python program and example files on how to use the python program. These are all based off of the OP25 Example file from [Baz] <http://wiki.spench.net/wiki/OP25>.
+I added the examples to help make it a little easier to get started using the gr-dsd block. I have included a GRC file, a python program and example files on how to use the python program. These are all based off of the OP25 Example file from [Baz](http://wiki.spench.net/wiki/OP25).
