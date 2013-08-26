@@ -110,7 +110,7 @@ class my_top_block(gr.top_block):
 
 		self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_ccc(decim, (firdes.low_pass(1, samp_rate, self.xlate_bandwidth/2, 6000)), -options.offset, samp_rate)
 		self.fir_filter_xxx_0 = filter.fir_filter_fff(1, ((1.0/self.samp_per_sym,)*self.samp_per_sym))
-		self.dsd_block_ff_0 = dsd.block_ff(dsd.dsd_FRAME_P25_PHASE_1,dsd.dsd_MOD_AUTO_SELECT,3,2,True)
+		self.dsd_block_ff_0 = dsd.block_ff(dsd.dsd_FRAME_AUTO_DETECT,dsd.dsd_MOD_AUTO_SELECT,3,3,True)
 		self.blks2_rational_resampler_xxx_1 = blks2.rational_resampler_ccc(
 			interpolation=channel_rate,
 			decimation=pre_channel_rate,
