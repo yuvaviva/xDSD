@@ -71,3 +71,11 @@ Contributions are welcome!
 **By: Luke Berndt <lukekb@gmail.com>**
 
 I added the examples to help make it a little easier to get started using the gr-dsd block. I have included a GRC file, a python program and example files on how to use the python program. These are all based off of the OP25 Example file from [Baz](http://wiki.spench.net/wiki/OP25).
+
+###GRC File
+To use the GRC file, simply load up GNURadio Companion, open the DSD.grc file and connect your SDR. Once you run the file you will see a large FFT that will display all of the spectrum the SDR sees. You can type in the center frequency into the Frequency Box. You want to pick a center frequency that is close to your target frequency, but not the same. This is because there is some DC interference right at the center frequency. In order to tune in your target frequency, you type in the offset into the Xlate Offset box. So if you are trying to tune in 856.8175 Mhz, you could type 856800000 into the Frequency box and 17500 into the Xlating Offset box. (You may actually need to type -17500, I get confused on this and I think the final frequency display is broken). This will tune you to the correct frequency. 
+
+Unforunately SDRs are not 100% accruate. Click on the Xlate-1 tab. It will display an FFT of the channel that you are trying to decode. Use Fine Offset slider to center the spike of your channel in the middle. You may need to adjust the Gain up or down to get it to play correctly. The gain slider adjusts the IF & BB gain used in the HackRF. You could tie it to the RF gain instead if you change the OsmoSDR Source block.
+
+###Python Program
+The Python program is the same thing, except without the GUI. You can simply enter the values you used in the GRC program using the command line arguments. If you know how far off your SDR is in the frequency band you are interested, use the -E argument. This will let you use the actual frequencies for the channel you are trying to tune in. Again, make sure you tune in a center frequency that is slightly away from your target frequency. You will probably have to adjust the various Gain values to find something that works reliably. I have included some sample Shell Scripts that I use to tune in specific systems. 
