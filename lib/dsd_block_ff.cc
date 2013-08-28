@@ -252,7 +252,7 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
 
   params.state.input_length = 0;
 
-  params.state.output_buffer = (short *) malloc(2 * 80000); // TODO: Make this variable size.
+  params.state.output_buffer = (short *) malloc(4 * 80000); // TODO: Make this variable size.
   params.state.output_offset = 0;
   if (params.state.output_buffer == NULL)
   {

@@ -216,6 +216,7 @@ initState (dsd_state * state)
   state->prev_mp = malloc (sizeof (mbe_parms));
   state->prev_mp_enhanced = malloc (sizeof (mbe_parms));
   mbe_initMbeParms (state->cur_mp, state->prev_mp, state->prev_mp_enhanced);
+  state->p25kid = 0;
 }
 
 void
