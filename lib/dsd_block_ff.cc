@@ -66,10 +66,15 @@ void* run_dsd (void *arg)
 /*
  * The private constructor
  */
+/*
 dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity)
   : gr_sync_decimator ("block_ff",
 	      gr_make_io_signature (MIN_IN, MAX_IN, sizeof (float)),
-	      gr_make_io_signature (MIN_OUT, MAX_OUT, sizeof (float)), 6)
+	      gr_make_io_signature (MIN_OUT, MAX_OUT, sizeof (float)), 6)*/
+dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity)
+  : gr_block ("block_ff",
+	      gr_make_io_signature (MIN_IN, MAX_IN, sizeof (float)),
+	      gr_make_io_signature (MIN_OUT, MAX_OUT, sizeof (float)))
 {
   initOpts (&params.opts);
   initState (&params.state);
@@ -258,6 +263,15 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
   {
     printf("Unable to allocate output buffer.\n");
   }
+/*
+          params.opts.errorbars = 0;
+          params.opts.p25enc = 0;
+          params.opts.p25lc = 0;
+          params.opts.p25status = 0;
+          params.opts.p25tg = 0;
+          params.opts.datascope = 1;
+          params.opts.symboltiming = 0;*/
+
 
   // Spawn DSD in its own thread
   pthread_t dsd_thread;
@@ -281,7 +295,8 @@ dsd_block_ff::~dsd_block_ff ()
 }
 
 int
-dsd_block_ff::work (int noutput_items,
+dsd_block_ff::general_work (int noutput_items,
+			gr_vector_int &ninput_items,
 			gr_vector_const_void_star &input_items,
 			gr_vector_void_star &output_items)
 {
@@ -290,7 +305,7 @@ dsd_block_ff::work (int noutput_items,
   const float *in = (const float *) input_items[0];
   float *out = (float *) output_items[0];
 
-  for (i = 0; i < noutput_items * 6; i++) {
+  for (i = 0; i < ninput_items[0]; i++) {
     if (in[i] != 0) {
       send_to_dsd = 1;
       break;
@@ -301,6 +316,8 @@ dsd_block_ff::work (int noutput_items,
     for (i = 0; i < noutput_items; i++) {
       out[i] = 0;
     }
+    //printf("Zeroed input - Num output: %d Num Input: %d \n",noutput_items, ninput_items[0]);
+    this->consume(0, ninput_items[0]);
     return noutput_items;
   }
 
@@ -314,8 +331,9 @@ dsd_block_ff::work (int noutput_items,
     printf("Unable to lock mutex\n");
   }
 
+  //printf("Num output: %d Num Input: %d \n",noutput_items, ninput_items[0]);
   params.state.input_samples = in;
-  params.state.input_length = noutput_items * 6;
+  params.state.input_length = ninput_items[0];
   params.state.input_offset = 0;
 
   if (pthread_cond_signal(&params.state.input_ready))
@@ -335,6 +353,7 @@ dsd_block_ff::work (int noutput_items,
       printf("general_work -> Error waiting for condition\n");
     }
   }
+  this->consume(0, ninput_items[0]);
 
   // Tell runtime system how many output items we produced.
   return noutput_items;

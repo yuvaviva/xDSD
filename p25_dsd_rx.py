@@ -73,7 +73,7 @@ class my_top_block(gr.top_block):
 		self.decim = decim = 20
 
 
-		self.xlate_bandwidth = 12500
+		self.xlate_bandwidth = 14000
 		self.pre_channel_rate = pre_channel_rate = int(samp_rate/decim)
 		self.channel_rate = channel_rate = 4800*samp_per_sym
 		
@@ -129,8 +129,11 @@ class my_top_block(gr.top_block):
 		#self.connect((self.blks2_rational_resampler_xxx_1, 0), (self.wxgui_fftsink2_0_0, 0))
 		self.connect((self.blks2_rational_resampler_xxx_0, 0), (self.audio_sink_0, 0))
 		self.connect((self.dsd_block_ff_0, 0), (self.blks2_rational_resampler_xxx_0, 0))
+		
+		#self.connect((self.analog_quadrature_demod_cf_0, 0), (self.dsd_block_ff_0, 0))
 		self.connect((self.analog_quadrature_demod_cf_0, 0), (self.fir_filter_xxx_0, 0))
 		self.connect((self.fir_filter_xxx_0, 0), (self.dsd_block_ff_0, 0))
+
 		self.connect((self.rtl, 0), (self.freq_xlating_fir_filter_xxx_0, 0))
 		self.connect((self.freq_xlating_fir_filter_xxx_0, 0), (self.blks2_rational_resampler_xxx_1, 0))
 		self.connect((self.blks2_rational_resampler_xxx_1, 0), (self.analog_quadrature_demod_cf_0, 0))

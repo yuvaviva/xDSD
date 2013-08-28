@@ -104,6 +104,7 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
                 }
 
               state->output_num_samples = state->output_offset;
+
               if (state->output_num_samples > state->output_length) {
                 state->output_num_samples = state->output_length;
               }
@@ -111,10 +112,12 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
                 {
                   state->output_samples[i] = 0;
                 }
+		
               for (; i < state->output_length; i++)
                 {
                   state->output_samples[i] = state->output_buffer[i - (state->output_length - state->output_num_samples)] / 32768.0;
                 }
+		
               state->output_offset -= state->output_num_samples;
               for (i = 0; i < state->output_offset; i++)
                 {
