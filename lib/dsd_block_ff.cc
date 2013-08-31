@@ -307,26 +307,23 @@ dsd_block_ff::general_work (int noutput_items,
   const float *in = (const float *) input_items[0];
   float *out = (float *) output_items[0];
 /*
-if (ninput_items[0] < 100)
-	return 0;
-*/
-//printf("Requested output: %d Number of Input: %d ", noutput_items, ninput_items[0]);
   for (i = 0; i < ninput_items[0]; i++) {
     if (in[i] != 0) {
       send_to_dsd = 1;
       break;
     }
   }
+
   if (!send_to_dsd) {
     // All samples are zero, so skip DSD processing.
     for (i = 0; i < noutput_items; i++) {
       out[i] = 0;
     }
-    printf("Zeroed input - Num output: %d Num Input: %d \n",noutput_items, ninput_items[0]);
+    printf("!!!!!!!!!!!!!!!!  Zeroed input - Num output: %d Num Input: %d \n",noutput_items, ninput_items[0]);
     this->consume(0, ninput_items[0]);
     return noutput_items;
   }
-
+*/
   params.state.output_samples = out;
   params.state.output_num_samples = 0;
   params.state.output_length = noutput_items;
@@ -336,8 +333,6 @@ if (ninput_items[0] < 100)
   {
     printf("Unable to lock mutex\n");
   }
-	float ratio = ninput_items[0] / noutput_items;
-  //printf("Num output: %d Num Input: %d Ratio: %f \n",noutput_items, ninput_items[0], ratio);
   params.state.input_samples = in;
   params.state.input_length = ninput_items[0];
   params.state.input_offset = 0;
@@ -361,7 +356,12 @@ if (ninput_items[0] < 100)
   }
  
   this->consume(0, ninput_items[0]);
-  //printf(" Out length: %d \n", params.state.output_num_samples);
+	if (params.state.output_num_samples > 0) {
+	float ratio = float(ninput_items[0]) / float(noutput_items);
+    printf("Num output: %d \tNum Input: %d \tRatio: %g  \tOut length: %d \tOutput Offset: %d \n",noutput_items, ninput_items[0], ratio,  params.state.output_num_samples, params.state.output_offset);
+
+  }
   // Tell runtime system how many output items we produced.
+  //return noutput_items;
   return params.state.output_num_samples;
 }
