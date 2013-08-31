@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='ASCII'?>
 <flow_graph>
-  <timestamp>Sun Aug 25 21:17:39 2013</timestamp>
+  <timestamp>Fri Aug 30 08:50:41 2013</timestamp>
   <block>
     <key>options</key>
     <param>
@@ -1187,45 +1187,6 @@
     </param>
   </block>
   <block>
-    <key>dsd_block_ff</key>
-    <param>
-      <key>id</key>
-      <value>dsd_block_ff_0</value>
-    </param>
-    <param>
-      <key>_enabled</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>frame</key>
-      <value>dsd.dsd_FRAME_P25_PHASE_1</value>
-    </param>
-    <param>
-      <key>mod</key>
-      <value>dsd.dsd_MOD_AUTO_SELECT</value>
-    </param>
-    <param>
-      <key>uvquality</key>
-      <value>3</value>
-    </param>
-    <param>
-      <key>errorbars</key>
-      <value>True</value>
-    </param>
-    <param>
-      <key>verbosity</key>
-      <value>2</value>
-    </param>
-    <param>
-      <key>_coordinate</key>
-      <value>(609, 785)</value>
-    </param>
-    <param>
-      <key>_rotation</key>
-      <value>0</value>
-    </param>
-  </block>
-  <block>
     <key>variable_config</key>
     <param>
       <key>id</key>
@@ -1979,6 +1940,80 @@
       <value>0</value>
     </param>
   </block>
+  <block>
+    <key>dsd_block_ff</key>
+    <param>
+      <key>id</key>
+      <value>dsd_block_ff_0</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>frame</key>
+      <value>dsd.dsd_FRAME_P25_PHASE_1</value>
+    </param>
+    <param>
+      <key>mod</key>
+      <value>dsd.dsd_MOD_AUTO_SELECT</value>
+    </param>
+    <param>
+      <key>uvquality</key>
+      <value>3</value>
+    </param>
+    <param>
+      <key>errorbars</key>
+      <value>False</value>
+    </param>
+    <param>
+      <key>verbosity</key>
+      <value>0</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(609, 785)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+  </block>
+  <block>
+    <key>blocks_wavfile_sink</key>
+    <param>
+      <key>id</key>
+      <value>blocks_wavfile_sink_0</value>
+    </param>
+    <param>
+      <key>_enabled</key>
+      <value>True</value>
+    </param>
+    <param>
+      <key>file</key>
+      <value>more.wav</value>
+    </param>
+    <param>
+      <key>nchan</key>
+      <value>1</value>
+    </param>
+    <param>
+      <key>samp_rate</key>
+      <value>8000</value>
+    </param>
+    <param>
+      <key>bits_per_sample</key>
+      <value>8</value>
+    </param>
+    <param>
+      <key>_coordinate</key>
+      <value>(1108, 913)</value>
+    </param>
+    <param>
+      <key>_rotation</key>
+      <value>0</value>
+    </param>
+  </block>
   <connection>
     <source_block_id>blks2_rational_resampler_xxx_1</source_block_id>
     <sink_block_id>wxgui_fftsink2_0_0</sink_block_id>
@@ -2072,6 +2107,12 @@
   <connection>
     <source_block_id>blks2_rational_resampler_xxx_1</source_block_id>
     <sink_block_id>analog_quadrature_demod_cf_0</sink_block_id>
+    <source_key>0</source_key>
+    <sink_key>0</sink_key>
+  </connection>
+  <connection>
+    <source_block_id>dsd_block_ff_0</source_block_id>
+    <sink_block_id>blocks_wavfile_sink_0</sink_block_id>
     <source_key>0</source_key>
     <sink_key>0</sink_key>
   </connection>

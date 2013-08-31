@@ -255,6 +255,8 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
     printf("Unable to lock mutex\n");
   }
 
+//set_output_multiple(256);
+
   params.state.input_length = 0;
 
   params.state.output_buffer = (short *) malloc(4 * 80000); // TODO: Make this variable size.
@@ -304,7 +306,11 @@ dsd_block_ff::general_work (int noutput_items,
   int send_to_dsd = 0;
   const float *in = (const float *) input_items[0];
   float *out = (float *) output_items[0];
-
+/*
+if (ninput_items[0] < 100)
+	return 0;
+*/
+//printf("Requested output: %d Number of Input: %d ", noutput_items, ninput_items[0]);
   for (i = 0; i < ninput_items[0]; i++) {
     if (in[i] != 0) {
       send_to_dsd = 1;
@@ -316,7 +322,7 @@ dsd_block_ff::general_work (int noutput_items,
     for (i = 0; i < noutput_items; i++) {
       out[i] = 0;
     }
-    //printf("Zeroed input - Num output: %d Num Input: %d \n",noutput_items, ninput_items[0]);
+    printf("Zeroed input - Num output: %d Num Input: %d \n",noutput_items, ninput_items[0]);
     this->consume(0, ninput_items[0]);
     return noutput_items;
   }
@@ -330,8 +336,8 @@ dsd_block_ff::general_work (int noutput_items,
   {
     printf("Unable to lock mutex\n");
   }
-
-  //printf("Num output: %d Num Input: %d \n",noutput_items, ninput_items[0]);
+	float ratio = ninput_items[0] / noutput_items;
+  //printf("Num output: %d Num Input: %d Ratio: %f \n",noutput_items, ninput_items[0], ratio);
   params.state.input_samples = in;
   params.state.input_length = ninput_items[0];
   params.state.input_offset = 0;
@@ -353,8 +359,9 @@ dsd_block_ff::general_work (int noutput_items,
       printf("general_work -> Error waiting for condition\n");
     }
   }
+ 
   this->consume(0, ninput_items[0]);
-
+  //printf(" Out length: %d \n", params.state.output_num_samples);
   // Tell runtime system how many output items we produced.
-  return noutput_items;
+  return params.state.output_num_samples;
 }
