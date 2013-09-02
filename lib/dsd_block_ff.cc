@@ -37,9 +37,9 @@
  * a boost shared_ptr.  This is effectively the public constructor.
  */
 dsd_block_ff_sptr
-dsd_make_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity)
+dsd_make_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity, bool empty)
 {
-  return gnuradio::get_initial_sptr(new dsd_block_ff (frame, mod, uvquality, errorbars, verbosity));
+  return gnuradio::get_initial_sptr(new dsd_block_ff (frame, mod, uvquality, errorbars, verbosity, empty));
 }
 
 /*
@@ -59,6 +59,7 @@ static const int MAX_OUT = 1;	// maximum number of output streams
 void* run_dsd (void *arg)
 {
   dsd_params *params = (dsd_params *) arg;
+  //openWavOutFile (&params->opts, &params->state);
   liveScanner (&params->opts, &params->state);
   return NULL;
 }
@@ -71,14 +72,50 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
   : gr_sync_decimator ("block_ff",
 	      gr_make_io_signature (MIN_IN, MAX_IN, sizeof (float)),
 	      gr_make_io_signature (MIN_OUT, MAX_OUT, sizeof (float)), 6)*/
-dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity)
+dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity, bool empty)
   : gr_block ("block_ff",
 	      gr_make_io_signature (MIN_IN, MAX_IN, sizeof (float)),
 	      gr_make_io_signature (MIN_OUT, MAX_OUT, sizeof (float)))
 {
   initOpts (&params.opts);
   initState (&params.state);
+pthread_attr_t *tattr;
+struct sched_param param;
+int pr,error,i, policy;
 
+if( (tattr=(pthread_attr_t *)malloc(sizeof(pthread_attr_t)) )==NULL)
+{
+    printf("Couldn't allocate memory for attribute object\n");
+}
+
+if(error=pthread_attr_init(tattr))
+{
+    fprintf(stderr,"Attribute initialization failed with error %s\n",strerror(error));
+}
+
+
+policy = SCHED_RR;
+
+    error = pthread_attr_setschedpolicy(tattr, policy);
+
+    // insert error handling
+
+ error = pthread_attr_getschedparam(tattr,&param);
+
+        if(error!=0)
+        {
+            printf("failed to get priority\n");
+        }
+
+        param.sched_priority=10;
+        error=pthread_attr_setschedparam(tattr,&param);
+
+        if(error!=0)
+        {
+            printf("failed to set priority\n");
+        }
+
+  
   params.opts.split = 1;
   params.opts.playoffset = 0;
   params.opts.delay = 0;
@@ -196,6 +233,7 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
 
   params.opts.verbose = verbosity;
   params.opts.errorbars = errorbars;
+  empty_frames = empty;
 
   if (mod == dsd_MOD_AUTO_SELECT)
   {
@@ -255,7 +293,7 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
     printf("Unable to lock mutex\n");
   }
 
-//set_output_multiple(256);
+	set_output_multiple(160);
 
   params.state.input_length = 0;
 
@@ -265,19 +303,12 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
   {
     printf("Unable to allocate output buffer.\n");
   }
-/*
-          params.opts.errorbars = 0;
-          params.opts.p25enc = 0;
-          params.opts.p25lc = 0;
-          params.opts.p25status = 0;
-          params.opts.p25tg = 0;
-          params.opts.datascope = 1;
-          params.opts.symboltiming = 0;*/
 
+//strcpy(params.opts.wav_out_file, "dsd.wav");
 
   // Spawn DSD in its own thread
-  pthread_t dsd_thread;
-  if(pthread_create(&dsd_thread, NULL, &run_dsd, &params))
+  
+  if(pthread_create(&dsd_thread, tattr, &run_dsd, &params))
   {
     printf("Unable to spawn thread\n");
   }
@@ -288,12 +319,14 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
  */
 dsd_block_ff::~dsd_block_ff ()
 {
+pthread_cancel(dsd_thread);
   // Unlock output mutex
   if (pthread_mutex_unlock(&params.state.output_mutex))
   {
     printf("Unable to unlock mutex\n");
   }
   free(params.state.output_buffer);
+  printf("Freeing DSD Thread\n");
 }
 
 int
@@ -304,26 +337,10 @@ dsd_block_ff::general_work (int noutput_items,
 {
   int i;
   int send_to_dsd = 0;
+  
   const float *in = (const float *) input_items[0];
   float *out = (float *) output_items[0];
-/*
-  for (i = 0; i < ninput_items[0]; i++) {
-    if (in[i] != 0) {
-      send_to_dsd = 1;
-      break;
-    }
-  }
 
-  if (!send_to_dsd) {
-    // All samples are zero, so skip DSD processing.
-    for (i = 0; i < noutput_items; i++) {
-      out[i] = 0;
-    }
-    printf("!!!!!!!!!!!!!!!!  Zeroed input - Num output: %d Num Input: %d \n",noutput_items, ninput_items[0]);
-    this->consume(0, ninput_items[0]);
-    return noutput_items;
-  }
-*/
   params.state.output_samples = out;
   params.state.output_num_samples = 0;
   params.state.output_length = noutput_items;
@@ -354,14 +371,30 @@ dsd_block_ff::general_work (int noutput_items,
       printf("general_work -> Error waiting for condition\n");
     }
   }
- 
-  this->consume(0, ninput_items[0]);
-	if (params.state.output_num_samples > 0) {
-	float ratio = float(ninput_items[0]) / float(noutput_items);
-    printf("Num output: %d \tNum Input: %d \tRatio: %g  \tOut length: %d \tOutput Offset: %d \n",noutput_items, ninput_items[0], ratio,  params.state.output_num_samples, params.state.output_offset);
+ if (params.state.output_num_samples > 0) {
+printf("[%lu] \tInputs: %d \tReq Outputs: %d \tOutputs: %d\n",long(pthread_self()),ninput_items[0],noutput_items, params.state.output_num_samples);
 
-  }
-  // Tell runtime system how many output items we produced.
-  //return noutput_items;
+}
+
+if (empty_frames) {
+
+  this->consume(0, ninput_items[0]);
+	
+return (noutput_items);
+} else {
+
+  this->consume(0, ninput_items[0]);
+	 
   return params.state.output_num_samples;
+
+if ((params.state.output_num_samples > 0) && (params.state.output_num_samples < noutput_items)) {
+
+ return 0;
+} else {
+
+  this->consume(0, ninput_items[0]);
+	 
+  return params.state.output_num_samples;
+}
+}
 }

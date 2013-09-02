@@ -161,6 +161,7 @@ writeSynthesizedVoice (dsd_opts * opts, dsd_state * state)
 
   aout_buf_p = aout_buf;
   state->audio_out_temp_buf_p = state->audio_out_temp_buf;
+  //printf("\nDSD:\n");
   for (n = 0; n < 160; n++)
     {
       if (*state->audio_out_temp_buf_p > (float) 32760)
@@ -171,6 +172,7 @@ writeSynthesizedVoice (dsd_opts * opts, dsd_state * state)
         {
           *state->audio_out_temp_buf_p = (float) -32760;
         }
+	//printf("\t%d", (short) *state->audio_out_temp_buf_p);
       *aout_buf_p = (short) *state->audio_out_temp_buf_p;
       aout_buf_p++;
       state->audio_out_temp_buf_p++;

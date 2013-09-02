@@ -20,7 +20,7 @@
 int
 getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 {
-
+  float sample_float;
   short sample;
   int i, sum, symbol, count;
   ssize_t result;
@@ -90,10 +90,24 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
                 }
             }
           // Get the next sample from the buffer, converting from float to short.
+/*
+	float sample_float = state->input_samples[state->input_offset++];
+	if (sample_float > (float) 32760)
+        {
+          sample_float = (float) 32760;
+        }
+	else if (sample_float < (float) -32760)
+        {
+          sample_float = (float) -32760;
+        }*/
           sample = (short) (state->input_samples[state->input_offset++] * 32768);
+
+
+
+
           if (state->input_offset == state->input_length)
             {
-              int i;
+              int i,j;
 
               // We've reached the end of the buffer.  Wait for more next time.
               state->input_length = 0;
@@ -108,16 +122,25 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
               if (state->output_num_samples > state->output_length) {
                 state->output_num_samples = state->output_length;
               }
+
+		/*if (state->output_num_samples > 0)
+		printf("\nGR:"); */
+
               for (i = 0; i < state->output_length - state->output_num_samples; i++)
                 {
+		/*
+		if (state->output_num_samples > 0)
+		   printf("\t0");*/
                   state->output_samples[i] = 0;
                 }
 		
+
               for (; i < state->output_length; i++)
                 {
-                  state->output_samples[i] = state->output_buffer[i - (state->output_length - state->output_num_samples)] / 32768.0;
+		  //printf("\t%d", state->output_buffer[i - (state->output_length - state->output_num_samples)] );
+                  state->output_samples[i] = state->output_buffer[i - (state->output_length - state->output_num_samples)] / 32768.0; 
                 }
-		
+
               state->output_offset -= state->output_num_samples;
               for (i = 0; i < state->output_offset; i++)
                 {
