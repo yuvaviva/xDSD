@@ -280,10 +280,39 @@ usage ()
   printf ("                 (default=15)\n");
   exit (0);
 }
+void puts_thread_scheduling(char *who)
+{
+struct sched_param thread_param;
+pthread_attr_t thread_attr;
+int thread_policy = 0;
+ 
+pthread_attr_init(&thread_attr);
+pthread_attr_getschedparam(&thread_attr, &thread_param);
+pthread_attr_getschedpolicy(&thread_attr, &thread_policy);
+printf("[%s] priority: %d\n", who, thread_param.sched_priority);
+printf("[%s] schedule: ", who);
+switch(thread_policy){
+case SCHED_FIFO: printf("FIFO"); break;
+case SCHED_RR: printf("RR"); break;
+case SCHED_OTHER: printf("OTHER"); break;
+default: printf("UNKONW"); break;
+}
+printf("\n");
+ 
+}
+
 
 void
 liveScanner (dsd_opts * opts, dsd_state * state)
 {
+/*
+	long tid;
+	long pid;
+	tid = syscall(SYS_gettid);
+	pid = pthread_self();
+	
+	printf("[ Pthread: %lu - PID: %ld ]\n",pid,tid);
+	puts_thread_scheduling("Thread");*/
   if (opts->audio_in_fd == -1)
     {
       if (pthread_mutex_lock(&state->input_mutex))
@@ -291,6 +320,7 @@ liveScanner (dsd_opts * opts, dsd_state * state)
           printf("liveScanner -> Unable to lock mutex\n");
         }
     }
+
   while (1)
     {
       noCarrier (opts, state);
@@ -350,6 +380,10 @@ main (int argc, char **argv)
 
   exitflag = 0;
   signal (SIGINT, sigfun);
+
+
+
+
 
   while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:r")) != -1)
     {
@@ -691,6 +725,13 @@ main (int argc, char **argv)
       openAudioInDevice (&opts);
       opts.audio_out_fd = opts.audio_in_fd;
     }
+
+
+
+
+		
+
+
 
   if (opts.playfiles == 1)
     {

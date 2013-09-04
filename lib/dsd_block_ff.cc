@@ -32,6 +32,12 @@
 #include <dsd_block_ff.h>
 #include <gr_io_signature.h>
 
+
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 /*
  * Create a new instance of dsd_block_ff and return
  * a boost shared_ptr.  This is effectively the public constructor.
@@ -79,16 +85,17 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
 {
   initOpts (&params.opts);
   initState (&params.state);
-pthread_attr_t *tattr;
+pthread_attr_t tattr;
 struct sched_param param;
 int pr,error,i, policy;
 
+/*
 if( (tattr=(pthread_attr_t *)malloc(sizeof(pthread_attr_t)) )==NULL)
 {
     printf("Couldn't allocate memory for attribute object\n");
-}
+}*/
 
-if(error=pthread_attr_init(tattr))
+if(error=pthread_attr_init(&tattr))
 {
     fprintf(stderr,"Attribute initialization failed with error %s\n",strerror(error));
 }
@@ -96,11 +103,11 @@ if(error=pthread_attr_init(tattr))
 
 policy = SCHED_RR;
 
-    error = pthread_attr_setschedpolicy(tattr, policy);
+    error = pthread_attr_setschedpolicy(&tattr, policy);
 
     // insert error handling
 
- error = pthread_attr_getschedparam(tattr,&param);
+ error = pthread_attr_getschedparam(&tattr,&param);
 
         if(error!=0)
         {
@@ -108,7 +115,7 @@ policy = SCHED_RR;
         }
 
         param.sched_priority=10;
-        error=pthread_attr_setschedparam(tattr,&param);
+        error=pthread_attr_setschedparam(&tattr,&param);
 
         if(error!=0)
         {
@@ -304,15 +311,16 @@ policy = SCHED_RR;
     printf("Unable to allocate output buffer.\n");
   }
 
-//strcpy(params.opts.wav_out_file, "dsd.wav");
+  //strcpy(params.opts.wav_out_file, "dsd.wav");
 
-  // Spawn DSD in its own thread
-  
-  if(pthread_create(&dsd_thread, tattr, &run_dsd, &params))
+
+  if(pthread_create(&dsd_thread, &tattr, &run_dsd, &params))
   {
     printf("Unable to spawn thread\n");
   }
+
 }
+
 
 /*
  * Our virtual destructor.
@@ -371,10 +379,11 @@ dsd_block_ff::general_work (int noutput_items,
       printf("general_work -> Error waiting for condition\n");
     }
   }
+/*
  if (params.state.output_num_samples > 0) {
-printf("[%lu] \tInputs: %d \tReq Outputs: %d \tOutputs: %d\n",long(pthread_self()),ninput_items[0],noutput_items, params.state.output_num_samples);
+	printf("[%lu] \tInputs: %d \tReq Outputs: %d \tOutputs: %d \t Buffer Offset: %d\n",long(pthread_self()),ninput_items[0],noutput_items, params.state.output_num_samples, params.state.output_offset);
 
-}
+}*/
 
 if (empty_frames) {
 

@@ -17,6 +17,9 @@
 
 #include "dsd.h"
 
+
+
+
 int
 getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 {
@@ -89,17 +92,7 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
                   printf("getSymbol -> Error waiting for condition\n");
                 }
             }
-          // Get the next sample from the buffer, converting from float to short.
-/*
-	float sample_float = state->input_samples[state->input_offset++];
-	if (sample_float > (float) 32760)
-        {
-          sample_float = (float) 32760;
-        }
-	else if (sample_float < (float) -32760)
-        {
-          sample_float = (float) -32760;
-        }*/
+
           sample = (short) (state->input_samples[state->input_offset++] * 32768);
 
 
@@ -123,22 +116,15 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
                 state->output_num_samples = state->output_length;
               }
 
-		/*if (state->output_num_samples > 0)
-		printf("\nGR:"); */
-
               for (i = 0; i < state->output_length - state->output_num_samples; i++)
                 {
-		/*
-		if (state->output_num_samples > 0)
-		   printf("\t0");*/
                   state->output_samples[i] = 0;
                 }
 		
 
               for (; i < state->output_length; i++)
                 {
-		  //printf("\t%d", state->output_buffer[i - (state->output_length - state->output_num_samples)] );
-                  state->output_samples[i] = state->output_buffer[i - (state->output_length - state->output_num_samples)] / 32768.0; 
+		  state->output_samples[i] = state->output_buffer[i - (state->output_length - state->output_num_samples)] / 32768.0; 
                 }
 
               state->output_offset -= state->output_num_samples;
@@ -168,6 +154,7 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
       	  #define NZEROS 60
 		  #define GAIN 7.423339364e+00
 
+		  //static float xv[NZEROS+1];
 		  static float xv[NZEROS+1];
 
 		  static float xcoeffs[] =

@@ -37,6 +37,11 @@
 #include <math.h>
 #include <mbelib.h>
 
+
+#include <sys/syscall.h>
+#include <unistd.h>
+#include <sched.h>
+
 /*
  * global variables
  */
