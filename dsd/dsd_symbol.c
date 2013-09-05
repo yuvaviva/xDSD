@@ -155,7 +155,7 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 		  #define GAIN 7.423339364e+00
 
 		  //static float xv[NZEROS+1];
-		  static float xv[NZEROS+1];
+		  //static float xv[NZEROS+1];
 
 		  static float xcoeffs[] =
 		  { -0.0083649323, -0.0265444850, -0.0428141462, -0.0537571943,
@@ -179,13 +179,13 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 		  float sum; int i;
 
 		  for (i = 0; i < NZEROS; i++)
-		  xv[i] = xv[i+1];
+		  state->xv[i] = state->xv[i+1];
 
-		  xv[NZEROS] = sample; // unfiltered sample in
+		  state->xv[NZEROS] = sample; // unfiltered sample in
 		  sum = 0.0;
 
 		  for (i = 0; i <= NZEROS; i++)
-		  sum += (xcoeffs[i] * xv[i]);
+		  sum += (xcoeffs[i] * state->xv[i]);
 
 		  sample = sum / GAIN; // filtered sample out
       }

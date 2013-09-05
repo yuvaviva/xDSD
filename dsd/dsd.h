@@ -47,6 +47,7 @@
  */
 int exitflag;
 
+#define NZEROS 60
 
 typedef struct
 {
@@ -179,6 +180,7 @@ typedef struct
   int output_num_samples;
   int output_length;
   int output_finished;
+float xv[NZEROS+1];
 } dsd_state;
 
 /*
