@@ -91,6 +91,10 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
                 {
                   printf("getSymbol -> Error waiting for condition\n");
                 }
+	      if (state->exitflag == 1)
+		{
+		  cleanupAndExit (opts, state);
+		}
             }
 
           sample = (short) (state->input_samples[state->input_offset++] * 32768);

@@ -105,7 +105,7 @@ pthread_t dsd_thread;
   
  public:
   ~dsd_block_ff ();	// public destructor
-
+  int close();
   // Where all the action really happens
 
  int general_work (int noutput_items,

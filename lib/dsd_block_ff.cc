@@ -283,6 +283,10 @@ policy = SCHED_RR;
   {
     printf("Unable to initialize output mutex\n");
   }
+  if(pthread_mutex_init(&params.state.quit_mutex, NULL))
+  {
+    printf("Unable to initialize quit mutex\n");
+  }
 
   // Initialize the conditions
   if(pthread_cond_init(&params.state.input_ready, NULL))
@@ -293,15 +297,24 @@ policy = SCHED_RR;
   {
     printf("Unable to initialize output condition\n");
   }
+  if(pthread_cond_init(&params.state.quit_now, NULL))
+  {
+    printf("Unable to initialize quit condition\n");
+  }
 
   // Lock output mutex
   if (pthread_mutex_lock(&params.state.output_mutex))
   {
     printf("Unable to lock mutex\n");
   }
+  if (pthread_mutex_lock(&params.state.quit_mutex))
+  {
+    printf("Unable to lock quit mutex\n");
+  }
 
-	set_output_multiple(160);
-
+  if (!empty_frames) {
+  	set_output_multiple(160);
+  }
   params.state.input_length = 0;
 
   params.state.output_buffer = (short *) malloc(4 * 80000); // TODO: Make this variable size.
@@ -320,21 +333,54 @@ policy = SCHED_RR;
   }
 
 }
+int dsd_block_ff::close () {
 
+  
+
+
+}
 
 /*
  * Our virtual destructor.
  */
 dsd_block_ff::~dsd_block_ff ()
 {
-pthread_cancel(dsd_thread);
+
+  printf("dsd_block_ff.cc: Telling thread to exit\n");
+  //pthread_kill(dsd_thread, SIGINT);
+  params.state.exitflag =1;
+  if (pthread_cond_signal(&params.state.input_ready))
+  {
+    printf("Unable to signal\n");
+  }
   // Unlock output mutex
   if (pthread_mutex_unlock(&params.state.output_mutex))
   {
     printf("Unable to unlock mutex\n");
   }
-  free(params.state.output_buffer);
-  printf("Freeing DSD Thread\n");
+
+  // Lock output mutex
+  if (pthread_mutex_unlock(&params.state.quit_mutex))
+  {
+    printf("Unable to quit mutex\n");
+  }
+printf("dsd_block_ff.cc: freeing output buffer!\n");
+free(params.state.output_buffer);
+
+
+  printf("dsd_block_ff: Trying to free memory/ \n");
+  
+
+  free(params.state.dibit_buf);
+  free(params.state.audio_out_buf);
+  free(params.state.audio_out_float_buf);
+  free(params.state.cur_mp); 
+  free(params.state.prev_mp);
+  free(params.state.prev_mp_enhanced); 
+  //pthread_cancel(dsd_thread);
+
+  printf("dsd_block_ff: destructor done \n");
+ 
 }
 
 int

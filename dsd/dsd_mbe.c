@@ -62,7 +62,7 @@ playMbeFiles (dsd_opts * opts, dsd_state * state, int argc, char **argv)
                   playSynthesizedVoice (opts, state);
                 }
             }
-          if (exitflag == 1)
+          if (state->exitflag == 1)
             {
               cleanupAndExit (opts, state);
             }

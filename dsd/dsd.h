@@ -20,12 +20,14 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
+#include <errno.h>
 #define __USE_XOPEN
 #include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+
 #include <fcntl.h>
 #include <unistd.h>
 #ifdef SOLARIS
@@ -45,7 +47,7 @@
 /*
  * global variables
  */
-int exitflag;
+
 
 #define NZEROS 60
 
@@ -171,7 +173,8 @@ typedef struct
   const float *input_samples;
   int input_length;
   int input_offset;
-
+  pthread_mutex_t quit_mutex;
+  pthread_cond_t quit_now;
   pthread_mutex_t output_mutex;
   pthread_cond_t output_ready;
   short *output_buffer;
@@ -180,6 +183,7 @@ typedef struct
   int output_num_samples;
   int output_length;
   int output_finished;
+  int exitflag;
 float xv[NZEROS+1];
 } dsd_state;
 

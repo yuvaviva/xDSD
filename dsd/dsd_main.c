@@ -25,6 +25,7 @@
 #include "dmr_const.h"
 #include "provoice_const.h"
 
+
 int
 comp (const void *a, const void *b)
 {
@@ -217,6 +218,7 @@ initState (dsd_state * state)
   state->prev_mp_enhanced = malloc (sizeof (mbe_parms));
   mbe_initMbeParms (state->cur_mp, state->prev_mp, state->prev_mp_enhanced);
   state->p25kid = 0;
+  state->exitflag = 0;
 }
 
 void
@@ -301,6 +303,19 @@ printf("\n");
  
 }
 
+int needQuit(dsd_state * state)
+{
+
+  switch(pthread_mutex_trylock(&state->quit_mutex)) {
+    case 0: /* if we got the lock, unlock and return 1 (true) */
+      pthread_mutex_unlock(&state->quit_mutex);
+      return 1;
+    case EBUSY: /* return 0 (false) if the mutex was locked */
+      return 0;
+  }
+  return 1;
+}
+
 
 void
 liveScanner (dsd_opts * opts, dsd_state * state)
@@ -313,6 +328,10 @@ liveScanner (dsd_opts * opts, dsd_state * state)
 	
 	printf("[ Pthread: %lu - PID: %ld ]\n",pid,tid);
 	puts_thread_scheduling("Thread");*/
+
+  state->exitflag = 0;
+  signal (SIGINT, sigfun);
+
   if (opts->audio_in_fd == -1)
     {
       if (pthread_mutex_lock(&state->input_mutex))
@@ -321,7 +340,7 @@ liveScanner (dsd_opts * opts, dsd_state * state)
         }
     }
 
-  while (1)
+  while (!state->exitflag) //!needQuit(state))
     {
       noCarrier (opts, state);
       state->synctype = getFrameSync (opts, state);
@@ -339,24 +358,31 @@ liveScanner (dsd_opts * opts, dsd_state * state)
           state->lmid = (((state->min) - state->center) * 5 / 8) + state->center;
         }
     }
+ printf("dsd_main.c: Recieved Thread Canceling - Exiting \n");
 }
 
 void
 cleanupAndExit (dsd_opts * opts, dsd_state * state)
 {
-  noCarrier (opts, state);
+printf ("dsd_main.c: cleanupandexit().\n");
+  //noCarrier (opts, state);
   if (opts->wav_out_f != NULL)
     {
       closeWavOutFile (opts, state);
     }
-  printf ("Exiting.\n");
-  exit (0);
+
+
+  printf ("dsd_main.c: cleanupandexit() Exiting.\n");
+  pthread_exit();
+printf ("dsd_main.c: should never see this.\n");
+  //exit (0);
 }
 
 void
 sigfun (int sig)
 {
-  exitflag = 1;
+  printf("dsd_main.c: Got interupt flag \n");
+  //exitflag = 1;
   signal (SIGINT, SIG_DFL);
 }
 
@@ -378,7 +404,7 @@ main (int argc, char **argv)
   initOpts (&opts);
   initState (&state);
 
-  exitflag = 0;
+  //exitflag = 0;
   signal (SIGINT, sigfun);
 
 
