@@ -85,43 +85,10 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
 {
   initOpts (&params.opts);
   initState (&params.state);
-pthread_attr_t tattr;
-struct sched_param param;
-int pr,error,i, policy;
+  pthread_attr_t tattr;
 
-/*
-if( (tattr=(pthread_attr_t *)malloc(sizeof(pthread_attr_t)) )==NULL)
-{
-    printf("Couldn't allocate memory for attribute object\n");
-}*/
-
-if(error=pthread_attr_init(&tattr))
-{
-    fprintf(stderr,"Attribute initialization failed with error %s\n",strerror(error));
-}
-
-
-policy = SCHED_RR;
-
-    error = pthread_attr_setschedpolicy(&tattr, policy);
-
-    // insert error handling
-
- error = pthread_attr_getschedparam(&tattr,&param);
-
-        if(error!=0)
-        {
-            printf("failed to get priority\n");
-        }
-
-        param.sched_priority=10;
-        error=pthread_attr_setschedparam(&tattr,&param);
-
-        if(error!=0)
-        {
-            printf("failed to set priority\n");
-        }
-
+  struct sched_param param;
+  int pr,error,i, policy;
   
   params.opts.split = 1;
   params.opts.playoffset = 0;
@@ -326,11 +293,42 @@ policy = SCHED_RR;
 
   //strcpy(params.opts.wav_out_file, "dsd.wav");
 
+if(error=pthread_attr_init(&tattr))
+{
+    fprintf(stderr,"Attribute initialization failed with error %s\n",strerror(error));
+}
+
+
+//I don't understand schedule policy
+/*
+policy = SCHED_RR;
+
+    error = pthread_attr_setschedpolicy(&tattr, policy);
+
+    // insert error handling
+
+ error = pthread_attr_getschedparam(&tattr,&param);
+
+        if(error!=0)
+        {
+            printf("failed to get priority\n");
+        }
+
+        param.sched_priority=10;
+        error=pthread_attr_setschedparam(&tattr,&param);
+
+        if(error!=0)
+        {
+            printf("failed to set priority\n");
+        }
+*/
+pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED);
 
   if(pthread_create(&dsd_thread, &tattr, &run_dsd, &params))
   {
     printf("Unable to spawn thread\n");
   }
+pthread_attr_destroy(&tattr);
 
 }
 int dsd_block_ff::close () {
@@ -348,6 +346,7 @@ dsd_block_ff::~dsd_block_ff ()
 
   printf("dsd_block_ff.cc: Telling thread to exit\n");
   //pthread_kill(dsd_thread, SIGINT);
+  /*
   params.state.exitflag =1;
   if (pthread_cond_signal(&params.state.input_ready))
   {
@@ -363,11 +362,23 @@ dsd_block_ff::~dsd_block_ff ()
   if (pthread_mutex_unlock(&params.state.quit_mutex))
   {
     printf("Unable to quit mutex\n");
-  }
+  }*/
+
+pthread_cancel(dsd_thread);
+
+/*
+printf("dsd_block_ff.cc: Destroying Mutex\n");
+pthread_mutex_destroy(&params.state.quit_mutex);
+pthread_mutex_destroy(&params.state.output_mutex);
+pthread_mutex_destroy(&params.state.input_mutex);
+pthread_cond_destroy(&params.state.input_ready);
+pthread_cond_destroy(&params.state.output_ready);
+pthread_cond_destroy(&params.state.quit_now);
+*/
 printf("dsd_block_ff.cc: freeing output buffer!\n");
 free(params.state.output_buffer);
 
-
+/*
   printf("dsd_block_ff: Trying to free memory/ \n");
   
 
@@ -377,8 +388,7 @@ free(params.state.output_buffer);
   free(params.state.cur_mp); 
   free(params.state.prev_mp);
   free(params.state.prev_mp_enhanced); 
-  //pthread_cancel(dsd_thread);
-
+  */
   printf("dsd_block_ff: destructor done \n");
  
 }

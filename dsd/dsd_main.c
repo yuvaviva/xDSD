@@ -330,7 +330,6 @@ liveScanner (dsd_opts * opts, dsd_state * state)
 	puts_thread_scheduling("Thread");*/
 
   state->exitflag = 0;
-  signal (SIGINT, sigfun);
 
   if (opts->audio_in_fd == -1)
     {
@@ -350,6 +349,9 @@ liveScanner (dsd_opts * opts, dsd_state * state)
       state->lmid = (((state->min) - state->center) * 5 / 8) + state->center;
       while (state->synctype != -1)
         {
+	  if(state->exitflag) {
+		break;
+}
           processFrame (opts, state);
           state->synctype = getFrameSync (opts, state);
           // recalibrate center/umid/lmid
