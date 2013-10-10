@@ -62,11 +62,26 @@ static const int MAX_IN = 1;	// maximum number of input streams
 static const int MIN_OUT = 1;	// minimum number of output streams
 static const int MAX_OUT = 1;	// maximum number of output streams
 
+
+void cleanupHandler(void *arg) {
+dsd_params *params = (dsd_params *) arg;
+printf("dsd_main.c: [cleanupHandler] Destroying Mutex\n");
+//pthread_mutex_destroy(&params.state.quit_mutex);
+pthread_mutex_destroy(&params->state.output_mutex);
+pthread_mutex_destroy(&params->state.input_mutex);
+pthread_cond_destroy(&params->state.input_ready);
+pthread_cond_destroy(&params->state.output_ready);
+//pthread_cond_destroy(&params.state.quit_now);
+
+}
+
 void* run_dsd (void *arg)
 {
   dsd_params *params = (dsd_params *) arg;
+  pthread_cleanup_push(cleanupHandler, arg);
   //openWavOutFile (&params->opts, &params->state);
   liveScanner (&params->opts, &params->state);
+  pthread_cleanup_pop(0);
   return NULL;
 }
 
@@ -264,21 +279,23 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
   {
     printf("Unable to initialize output condition\n");
   }
+/*
   if(pthread_cond_init(&params.state.quit_now, NULL))
   {
     printf("Unable to initialize quit condition\n");
   }
-
+*/
   // Lock output mutex
   if (pthread_mutex_lock(&params.state.output_mutex))
   {
     printf("Unable to lock mutex\n");
   }
+/*
   if (pthread_mutex_lock(&params.state.quit_mutex))
   {
     printf("Unable to lock quit mutex\n");
   }
-
+*/
   if (!empty_frames) {
   	set_output_multiple(160);
   }
@@ -368,17 +385,17 @@ pthread_cancel(dsd_thread);
 
 /*
 printf("dsd_block_ff.cc: Destroying Mutex\n");
-pthread_mutex_destroy(&params.state.quit_mutex);
+//pthread_mutex_destroy(&params.state.quit_mutex);
 pthread_mutex_destroy(&params.state.output_mutex);
 pthread_mutex_destroy(&params.state.input_mutex);
 pthread_cond_destroy(&params.state.input_ready);
 pthread_cond_destroy(&params.state.output_ready);
-pthread_cond_destroy(&params.state.quit_now);
+//pthread_cond_destroy(&params.state.quit_now);
 */
 printf("dsd_block_ff.cc: freeing output buffer!\n");
 free(params.state.output_buffer);
 
-/*
+
   printf("dsd_block_ff: Trying to free memory/ \n");
   
 
@@ -388,7 +405,7 @@ free(params.state.output_buffer);
   free(params.state.cur_mp); 
   free(params.state.prev_mp);
   free(params.state.prev_mp_enhanced); 
-  */
+  
   printf("dsd_block_ff: destructor done \n");
  
 }

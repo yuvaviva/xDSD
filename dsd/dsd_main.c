@@ -317,6 +317,7 @@ int needQuit(dsd_state * state)
 }
 
 
+
 void
 liveScanner (dsd_opts * opts, dsd_state * state)
 {
@@ -341,6 +342,7 @@ liveScanner (dsd_opts * opts, dsd_state * state)
 
   while (!state->exitflag) //!needQuit(state))
     {
+      pthread_testcancel();
       noCarrier (opts, state);
       state->synctype = getFrameSync (opts, state);
       // recalibrate center/umid/lmid
