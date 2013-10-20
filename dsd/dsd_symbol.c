@@ -161,7 +161,7 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 		  //static float xv[NZEROS+1];
 		  //static float xv[NZEROS+1];
 
-		  static float xcoeffs[] =
+		  float xcoeffs[] =
 		  { -0.0083649323, -0.0265444850, -0.0428141462, -0.0537571943,
 		  -0.0564141052, -0.0489161045, -0.0310068662, -0.0043393881,
 		  +0.0275375106, +0.0595423283, +0.0857543325, +0.1003565948,

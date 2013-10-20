@@ -43,9 +43,9 @@
  * a boost shared_ptr.  This is effectively the public constructor.
  */
 dsd_block_ff_sptr
-dsd_make_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity, bool empty)
+dsd_make_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity, bool empty, int num)
 {
-  return gnuradio::get_initial_sptr(new dsd_block_ff (frame, mod, uvquality, errorbars, verbosity, empty));
+  return gnuradio::get_initial_sptr(new dsd_block_ff (frame, mod, uvquality, errorbars, verbosity, empty, num));
 }
 
 /*
@@ -65,14 +65,13 @@ static const int MAX_OUT = 1;	// maximum number of output streams
 
 void cleanupHandler(void *arg) {
 dsd_params *params = (dsd_params *) arg;
-printf("dsd_main.c: [cleanupHandler] Destroying Mutex\n");
-//pthread_mutex_destroy(&params.state.quit_mutex);
+
 pthread_mutex_destroy(&params->state.output_mutex);
 pthread_mutex_destroy(&params->state.input_mutex);
 pthread_cond_destroy(&params->state.input_ready);
 pthread_cond_destroy(&params->state.output_ready);
-//pthread_cond_destroy(&params.state.quit_now);
-
+printf(" - Pthread destructor [ %d ] \n", params->num);
+ 
 }
 
 void* run_dsd (void *arg)
@@ -88,12 +87,8 @@ void* run_dsd (void *arg)
 /*
  * The private constructor
  */
-/*
-dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity)
-  : gr_sync_decimator ("block_ff",
-	      gr_make_io_signature (MIN_IN, MAX_IN, sizeof (float)),
-	      gr_make_io_signature (MIN_OUT, MAX_OUT, sizeof (float)), 6)*/
-dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity, bool empty)
+
+dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity, bool empty, int num)
   : gr_block ("block_ff",
 	      gr_make_io_signature (MIN_IN, MAX_IN, sizeof (float)),
 	      gr_make_io_signature (MIN_OUT, MAX_OUT, sizeof (float)))
@@ -104,7 +99,7 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
 
   struct sched_param param;
   int pr,error,i, policy;
-  
+  params.num = num;
   params.opts.split = 1;
   params.opts.playoffset = 0;
   params.opts.delay = 0;
@@ -279,23 +274,11 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
   {
     printf("Unable to initialize output condition\n");
   }
-/*
-  if(pthread_cond_init(&params.state.quit_now, NULL))
-  {
-    printf("Unable to initialize quit condition\n");
-  }
-*/
   // Lock output mutex
   if (pthread_mutex_lock(&params.state.output_mutex))
   {
     printf("Unable to lock mutex\n");
   }
-/*
-  if (pthread_mutex_lock(&params.state.quit_mutex))
-  {
-    printf("Unable to lock quit mutex\n");
-  }
-*/
   if (!empty_frames) {
   	set_output_multiple(160);
   }
@@ -339,6 +322,8 @@ policy = SCHED_RR;
             printf("failed to set priority\n");
         }
 */
+
+
 pthread_attr_setdetachstate(&tattr, PTHREAD_CREATE_DETACHED);
 
   if(pthread_create(&dsd_thread, &tattr, &run_dsd, &params))
@@ -361,42 +346,16 @@ int dsd_block_ff::close () {
 dsd_block_ff::~dsd_block_ff ()
 {
 
-  printf("dsd_block_ff.cc: Telling thread to exit\n");
-  //pthread_kill(dsd_thread, SIGINT);
-  /*
-  params.state.exitflag =1;
-  if (pthread_cond_signal(&params.state.input_ready))
-  {
-    printf("Unable to signal\n");
-  }
-  // Unlock output mutex
-  if (pthread_mutex_unlock(&params.state.output_mutex))
-  {
-    printf("Unable to unlock mutex\n");
-  }
 
-  // Lock output mutex
-  if (pthread_mutex_unlock(&params.state.quit_mutex))
-  {
-    printf("Unable to quit mutex\n");
-  }*/
+
 
 pthread_cancel(dsd_thread);
 
-/*
-printf("dsd_block_ff.cc: Destroying Mutex\n");
-//pthread_mutex_destroy(&params.state.quit_mutex);
-pthread_mutex_destroy(&params.state.output_mutex);
-pthread_mutex_destroy(&params.state.input_mutex);
-pthread_cond_destroy(&params.state.input_ready);
-pthread_cond_destroy(&params.state.output_ready);
-//pthread_cond_destroy(&params.state.quit_now);
-*/
-printf("dsd_block_ff.cc: freeing output buffer!\n");
+//printf("dsd_block_ff.cc: freeing output buffer!\n");
 free(params.state.output_buffer);
 
 
-  printf("dsd_block_ff: Trying to free memory/ \n");
+  //printf("dsd_block_ff: Trying to free memory/ \n");
   
 
   free(params.state.dibit_buf);
@@ -406,7 +365,9 @@ free(params.state.output_buffer);
   free(params.state.prev_mp);
   free(params.state.prev_mp_enhanced); 
   
-  printf("dsd_block_ff: destructor done \n");
+	usleep(1000*1000);
+
+  printf(" - dsd_block_ff destructor [ %d ] \n", params.num);
  
 }
 
@@ -421,6 +382,7 @@ dsd_block_ff::general_work (int noutput_items,
   
   const float *in = (const float *) input_items[0];
   float *out = (float *) output_items[0];
+//memcpy(out, in, ninput_items[0] * sizeof(float));
 
   params.state.output_samples = out;
   params.state.output_num_samples = 0;
@@ -452,6 +414,8 @@ dsd_block_ff::general_work (int noutput_items,
       printf("general_work -> Error waiting for condition\n");
     }
   }
+
+
 /*
  if (params.state.output_num_samples > 0) {
 	printf("[%lu] \tInputs: %d \tReq Outputs: %d \tOutputs: %d \t Buffer Offset: %d\n",long(pthread_self()),ninput_items[0],noutput_items, params.state.output_num_samples, params.state.output_offset);
@@ -478,5 +442,10 @@ if ((params.state.output_num_samples > 0) && (params.state.output_num_samples < 
 	 
   return params.state.output_num_samples;
 }
+
 }
+/*
+this->consume(0, ninput_items[0]);
+return ninput_items[0];
+*/
 }

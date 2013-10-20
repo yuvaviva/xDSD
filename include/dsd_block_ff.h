@@ -50,6 +50,7 @@ enum dsd_modulation_optimizations {
 
 typedef struct
 {
+  int num;
   dsd_opts opts;
   dsd_state state;
 } dsd_params;
@@ -78,7 +79,7 @@ typedef boost::shared_ptr<dsd_block_ff> dsd_block_ff_sptr;
  */
 DSD_API dsd_block_ff_sptr dsd_make_block_ff (dsd_frame_mode frame = dsd_FRAME_AUTO_DETECT,
                                              dsd_modulation_optimizations mod = dsd_MOD_AUTO_SELECT,
-                                             int uvquality = 3, bool errorbars = true, int verbosity = 2, bool empty = false);
+                                             int uvquality = 3, bool errorbars = true, int verbosity = 2, bool empty = false, int num = -1);
 
 /*!
  * \brief pass discriminator output through Digital Speech Decoder
@@ -92,14 +93,14 @@ private:
   // access the private constructor.
 
 
-  friend DSD_API dsd_block_ff_sptr dsd_make_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity, bool empty);
+  friend DSD_API dsd_block_ff_sptr dsd_make_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity, bool empty, int num);
 
   dsd_params params;
 
   /*!
    * \brief pass discriminator output thread Digital Speech Decoder
    */
-  dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity, bool empty); // private constructor
+  dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity, bool empty, int num); // private constructor
 bool empty_frames;
 pthread_t dsd_thread;
   
