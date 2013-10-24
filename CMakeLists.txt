@@ -37,10 +37,10 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 ########################################################################
 # Compiler specific setup
 ########################################################################
-if(CMAKE_COMPILER_IS_GNUCXX AND NOT WIN32)
-    #http://gcc.gnu.org/wiki/Visibility
-    add_definitions(-fvisibility=hidden)
-endif()
+#if(CMAKE_COMPILER_IS_GNUCXX AND NOT WIN32)
+#    #http://gcc.gnu.org/wiki/Visibility
+#    add_definitions(-fvisibility=hidden)
+#endif()
 
 ########################################################################
 # Find boost

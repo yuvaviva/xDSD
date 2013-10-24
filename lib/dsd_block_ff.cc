@@ -350,6 +350,7 @@ dsd_block_ff::~dsd_block_ff ()
 
 
 pthread_cancel(dsd_thread);
+usleep(1000*1000);
 
 //printf("dsd_block_ff.cc: freeing output buffer!\n");
 free(params.state.output_buffer);
@@ -365,7 +366,6 @@ free(params.state.output_buffer);
   free(params.state.prev_mp);
   free(params.state.prev_mp_enhanced); 
   
-	usleep(1000*1000);
 
   printf(" - dsd_block_ff destructor [ %d ] \n", params.num);
  

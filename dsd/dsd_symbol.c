@@ -294,7 +294,12 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
         }
       state->lastsample = sample;
     }
+
+  if (count == 0 ){
+    printf("\n!!!!!!!!!!!!!!!!!!\n  Divide 0 Error\n!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
+  }
   symbol = (sum / count);
+  
 
   if ((opts->symboltiming == 1) && (have_sync == 0) && (state->lastsynctype != -1))
     {
