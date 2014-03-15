@@ -35,9 +35,8 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
   lsd3[8] = 0;
   lsd4[8] = 0;
 
-  skipDibit (opts, state, 3);
-  status[0] = getDibit (opts, state) + 48;
-  skipDibit (opts, state, 21);
+  // Now processing NID
+  status[0] = 0;
   scount = 1;
 
   count = 57;
@@ -80,7 +79,7 @@ processLDU2 (dsd_opts * opts, dsd_state * state)
           y++;
           z++;
         }
-      if (state->p25kid == 0)
+      if (state->p25kid == 0 || opts->unmute_encrypted_p25 == 1)
         {
     	  processMbeFrame (opts, state, imbe_fr, NULL, NULL);
         }

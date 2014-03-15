@@ -17,13 +17,10 @@
 
 #include "dsd.h"
 
-
-
-
 int
 getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 {
-  float sample_float;
+
   short sample;
   int i, sum, symbol, count;
   ssize_t result;
@@ -193,6 +190,22 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
 
 		  sample = sum / GAIN; // filtered sample out
       }
+      else {
+          result = sf_read_short(opts->audio_in_file, &sample, 1);
+          if(result == 0) {
+              cleanupAndExit (opts, state);
+          }
+      }
+     // printf("res: %zd\n, offset: %lld", result, sf_seek(opts->audio_in_file, 0, SEEK_CUR));
+      if (opts->use_cosine_filter)
+      {
+        if (state->lastsynctype >= 10 && state->lastsynctype <= 13)
+          sample = dmr_filter(sample);
+        else if (state->lastsynctype == 8 || state->lastsynctype == 9 ||
+                 state->lastsynctype == 16 || state->lastsynctype == 17)
+          sample = nxdn_filter(sample);
+      }
+
       if ((sample > state->max) && (have_sync == 1) && (state->rf_mod == 0))
         {
           sample = state->max;
@@ -299,7 +312,6 @@ getSymbol (dsd_opts * opts, dsd_state * state, int have_sync)
     printf("\n!!!!!!!!!!!!!!!!!!\n  Divide 0 Error\n!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n");
   }
   symbol = (sum / count);
-  
 
   if ((opts->symboltiming == 1) && (have_sync == 0) && (state->lastsynctype != -1))
     {

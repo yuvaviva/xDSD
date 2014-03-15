@@ -27,17 +27,17 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
-
 #include <fcntl.h>
 #include <unistd.h>
 #ifdef SOLARIS
 #include <sys/audioio.h>
 #endif
-#ifdef BSD
+#if defined(BSD) && !defined(__APPLE__)
 #include <sys/soundcard.h>
 #endif
 #include <math.h>
 #include <mbelib.h>
+#include <sndfile.h>
 
 
 #include <sys/syscall.h>
@@ -47,6 +47,7 @@
 /*
  * global variables
  */
+int exitflag;
 
 
 #define NZEROS 60
@@ -67,8 +68,14 @@ typedef struct
   int scoperate;
   char audio_in_dev[1024];
   int audio_in_fd;
+  SNDFILE *audio_in_file;
+  SF_INFO *audio_in_file_info;
+  int audio_in_type; // 0 for device, 1 for file
   char audio_out_dev[1024];
   int audio_out_fd;
+  SNDFILE *audio_out_file;
+  SF_INFO *audio_out_file_info;
+  int audio_out_type; // 0 for device, 1 for file
   int split;
   int playoffset;
   char mbe_out_dir[1024];
@@ -77,8 +84,8 @@ typedef struct
   float audio_gain;
   int audio_out;
   char wav_out_file[1024];
-  FILE *wav_out_f;
-  int wav_out_fd;
+  SNDFILE *wav_out_f;
+  //int wav_out_fd;
   int serial_baud;
   char serial_dev[1024];
   int serial_fd;
@@ -101,6 +108,8 @@ typedef struct
   int msize;
   int playfiles;
   int delay;
+  int use_cosine_filter;
+  int unmute_encrypted_p25;
 } dsd_opts;
 
 typedef struct
@@ -116,7 +125,7 @@ typedef struct
   float *audio_out_temp_buf_p;
   int audio_out_idx;
   int audio_out_idx2;
-  int wav_out_bytes;
+  //int wav_out_bytes;
   int center;
   int jitter;
   int synctype;
@@ -168,6 +177,11 @@ typedef struct
   mbe_parms *prev_mp;
   mbe_parms *prev_mp_enhanced;
   int p25kid;
+
+  unsigned int debug_audio_errors;
+  unsigned int debug_header_errors;
+  unsigned int debug_header_critical_errors;
+
   pthread_mutex_t input_mutex;
   pthread_cond_t input_ready;
   const float *input_samples;
@@ -198,6 +212,8 @@ float xv[NZEROS+1];
 #define X2TDMA_MS_DATA_SYNC  "313113333111111133333313"
 #define X2TDMA_MS_VOICE_SYNC "131331111333333311111131"
 
+#define DSTAR_HD	   "131313131333133113131111"
+#define INV_DSTAR_HD   "313131313111311331313333"
 #define DSTAR_SYNC     "313131313133131113313111"
 #define INV_DSTAR_SYNC "131313131311313331131333"
 
@@ -233,9 +249,9 @@ void openAudioInDevice (dsd_opts * opts);
 int getDibit (dsd_opts * opts, dsd_state * state);
 void skipDibit (dsd_opts * opts, dsd_state * state, int count);
 void saveImbe4400Data (dsd_opts * opts, dsd_state * state, char *imbe_d);
-void saveAmbe2250Data (dsd_opts * opts, dsd_state * state, char *ambe_d);
+void saveAmbe2450Data (dsd_opts * opts, dsd_state * state, char *ambe_d);
 int readImbe4400Data (dsd_opts * opts, dsd_state * state, char *imbe_d);
-int readAmbe2250Data (dsd_opts * opts, dsd_state * state, char *ambe_d);
+int readAmbe2450Data (dsd_opts * opts, dsd_state * state, char *ambe_d);
 void openMbeInFile (dsd_opts * opts, dsd_state * state);
 void closeMbeOutFile (dsd_opts * opts, dsd_state * state);
 void openMbeOutFile (dsd_opts * opts, dsd_state * state);
@@ -271,3 +287,6 @@ void processTDULC (dsd_opts * opts, dsd_state * state);
 void processProVoice (dsd_opts * opts, dsd_state * state);
 void processX2TDMAdata (dsd_opts * opts, dsd_state * state);
 void processX2TDMAvoice (dsd_opts * opts, dsd_state * state);
+void processDSTAR_HD (dsd_opts * opts, dsd_state * state);
+short dmr_filter(short sample);
+short nxdn_filter(short sample);

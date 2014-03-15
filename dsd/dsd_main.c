@@ -24,7 +24,7 @@
 #include "nxdn_const.h"
 #include "dmr_const.h"
 #include "provoice_const.h"
-
+#include "git_ver.h"
 
 int
 comp (const void *a, const void *b)
@@ -107,7 +107,7 @@ initOpts (dsd_opts * opts)
   opts->audio_out = 1;
   opts->wav_out_file[0] = 0;
   opts->wav_out_f = NULL;
-  opts->wav_out_fd = -1;
+  //opts->wav_out_fd = -1;
   opts->serial_baud = 115200;
   sprintf (opts->serial_dev, "/dev/ttyUSB0");
   opts->resume = 0;
@@ -129,6 +129,8 @@ initOpts (dsd_opts * opts)
   opts->msize = 15;
   opts->playfiles = 0;
   opts->delay = 0;
+  opts->use_cosine_filter = 1;
+  opts->unmute_encrypted_p25 = 0;
 }
 
 void
@@ -150,7 +152,7 @@ initState (dsd_state * state)
   state->audio_out_idx = 0;
   state->audio_out_idx2 = 0;
   state->audio_out_temp_buf_p = state->audio_out_temp_buf;
-  state->wav_out_bytes = 0;
+  //state->wav_out_bytes = 0;
   state->center = 0;
   state->jitter = -1;
   state->synctype = -1;
@@ -219,6 +221,10 @@ initState (dsd_state * state)
   mbe_initMbeParms (state->cur_mp, state->prev_mp, state->prev_mp_enhanced);
   state->p25kid = 0;
   state->exitflag = 0;
+
+  state->debug_audio_errors = 0;
+  state->debug_header_errors = 0;
+  state->debug_header_critical_errors = 0;
 }
 
 void
@@ -246,7 +252,8 @@ usage ()
   printf ("  -i <device>   Audio input device (default is /dev/audio)\n");
   printf ("  -o <device>   Audio output device (default is /dev/audio)\n");
   printf ("  -d <dir>      Create mbe data files, use this directory\n");
-  printf ("  -g <num>      Audio output gain (default = 0 = auto)\n");
+  printf ("  -r <files>    Read/Play saved mbe data from file(s)\n");
+  printf ("  -g <num>      Audio output gain (default = 0 = auto, disable = -1)\n");
   printf ("  -n            Do not send synthesized speech to audio output device\n");
   printf ("  -w <file>     Output synthesized speech to a .wav file\n");
   printf ("\n");
@@ -258,16 +265,18 @@ usage ()
   printf ("Decoder options:\n");
   printf ("  -fa           Auto-detect frame type (default)\n");
   printf ("  -f1           Decode only P25 Phase 1\n");
-  printf ("  -fd           Decode only D-STAR* (no audio)\n");
+  printf ("  -fd           Decode only D-STAR\n");
   printf ("  -fi           Decode only NXDN48* (6.25 kHz) / IDAS*\n");
   printf ("  -fn           Decode only NXDN96 (12.5 kHz)\n");
   printf ("  -fp           Decode only ProVoice*\n");
   printf ("  -fr           Decode only DMR/MOTOTRBO\n");
   printf ("  -fx           Decode only X2-TDMA\n");
+  printf ("  -l            Disable DMR/MOTOTRBO and NXDN input filtering\n");
   printf ("  -ma           Auto-select modulation optimizations (default)\n");
   printf ("  -mc           Use only C4FM modulation optimizations\n");
   printf ("  -mg           Use only GFSK modulation optimizations\n");
   printf ("  -mq           Use only QPSK modulation optimizations\n");
+  printf ("  -pu           Unmute Encrypted P25\n");
   printf ("  -u <num>      Unvoiced speech quality (default=3)\n");
   printf ("  -xx           Expect non-inverted X2-TDMA signal\n");
   printf ("  -xr           Expect inverted DMR/MOTOTRBO signal\n");
@@ -375,6 +384,10 @@ printf ("dsd_main.c: cleanupandexit().\n");
       closeWavOutFile (opts, state);
     }
 
+  printf("\n");
+  printf("Total audio errors: %i\n", state->debug_audio_errors);
+  printf("Total header errors: %i\n", state->debug_header_errors);
+  printf("Total irrecoverable header errors: %i\n", state->debug_header_critical_errors);
 
   printf ("dsd_main.c: cleanupandexit() Exiting.\n");
   pthread_exit();
@@ -402,7 +415,7 @@ main (int argc, char **argv)
   char versionstr[25];
   mbe_printVersion (versionstr);
 
-  printf ("Digital Speech Decoder 1.4.1\n");
+  printf ("Digital Speech Decoder 1.7.0-dev (build:%s)\n", GIT_TAG);
   printf ("mbelib version %s\n", versionstr);
 
   initOpts (&opts);
@@ -411,11 +424,7 @@ main (int argc, char **argv)
   //exitflag = 0;
   signal (SIGINT, sigfun);
 
-
-
-
-
-  while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:r")) != -1)
+  while ((c = getopt (argc, argv, "hep:qstv:z:i:o:d:g:nw:B:C:R:f:m:u:x:A:S:M:rl")) != -1)
     {
       opterr = 0;
       switch (c)
@@ -443,6 +452,10 @@ main (int argc, char **argv)
           else if (optarg[0] == 't')
             {
               opts.p25tg = 1;
+            }
+          else if (optarg[0] == 'u')
+            {
+             opts.unmute_encrypted_p25 = 1;
             }
           break;
         case 'q':
@@ -478,18 +491,25 @@ main (int argc, char **argv)
           printf ("Setting datascope frame rate to %i frame per second.\n", opts.scoperate);
           break;
         case 'i':
-          sscanf (optarg, "%s", opts.audio_in_dev);
+          strncpy(opts.audio_in_dev, optarg, 1023);
+          opts.audio_in_dev[1023] = '\0';
           break;
         case 'o':
-          sscanf (optarg, "%s", opts.audio_out_dev);
+          strncpy(opts.audio_out_dev, optarg, 1023);
+          opts.audio_out_dev[1023] = '\0';
           break;
         case 'd':
-          sscanf (optarg, "%s", opts.mbe_out_dir);
+          strncpy(opts.mbe_out_dir, optarg, 1023);
+          opts.mbe_out_dir[1023] = '\0';
           printf ("Writing mbe data files to directory %s\n", opts.mbe_out_dir);
           break;
         case 'g':
           sscanf (optarg, "%f", &opts.audio_gain);
-          if (opts.audio_gain <= (float) 0)
+          if (opts.audio_gain < (float) 0 )
+            {
+              printf ("Disabling audio out gain setting\n");
+            }
+          else if (opts.audio_gain == (float) 0)
             {
               opts.audio_gain = (float) 0;
               printf ("Enabling audio out auto-gain\n");
@@ -505,7 +525,8 @@ main (int argc, char **argv)
           printf ("Disabling audio output to soundcard.\n");
           break;
         case 'w':
-          sscanf (optarg, "%s", opts.wav_out_file);
+          strncpy(opts.wav_out_file, optarg, 1023);
+          opts.wav_out_file[1023] = '\0';
           printf ("Writing audio to file %s\n", opts.wav_out_file);
           openWavOutFile (&opts, &state);
           break;
@@ -513,7 +534,8 @@ main (int argc, char **argv)
           sscanf (optarg, "%d", &opts.serial_baud);
           break;
         case 'C':
-          sscanf (optarg, "%s", opts.serial_dev);
+          strncpy(opts.serial_dev, optarg, 1023);
+          opts.serial_dev[1023] = '\0';
           break;
         case 'R':
           sscanf (optarg, "%d", &opts.resume);
@@ -522,7 +544,7 @@ main (int argc, char **argv)
         case 'f':
           if (optarg[0] == 'a')
             {
-              opts.frame_dstar = 0;
+              opts.frame_dstar = 1;
               opts.frame_x2tdma = 1;
               opts.frame_p25p1 = 1;
               opts.frame_nxdn48 = 0;
@@ -720,6 +742,9 @@ main (int argc, char **argv)
           opts.datascope = 0;
           state.optind = optind;
           break;
+        case 'l':
+          opts.use_cosine_filter = 0;
+          break;
         default:
           usage ();
           exit (0);
@@ -737,14 +762,28 @@ main (int argc, char **argv)
       opts.split = 1;
       opts.playoffset = 0;
       opts.delay = 0;
-      openAudioOutDevice (&opts, 8000);
+      if (strlen(opts.wav_out_file) > 0)
+        {
+          openWavOutFile (&opts, &state);
+        }
+      else
+        {
+          openAudioOutDevice (&opts, 8000);
+        }
     }
   else if (strcmp (opts.audio_in_dev, opts.audio_out_dev) != 0)
     {
       opts.split = 1;
       opts.playoffset = 0;
       opts.delay = 0;
-      openAudioOutDevice (&opts, 8000);
+      if (strlen(opts.wav_out_file) > 0)
+        {
+          openWavOutFile (&opts, &state);
+        }
+      else
+        {
+          openAudioOutDevice (&opts, 8000);
+        }
       openAudioInDevice (&opts);
     }
   else
@@ -756,20 +795,13 @@ main (int argc, char **argv)
       opts.audio_out_fd = opts.audio_in_fd;
     }
 
-
-
-
-		
-
-
-
   if (opts.playfiles == 1)
     {
       playMbeFiles (&opts, &state, argc, argv);
     }
   else
     {
-      liveScanner (&opts, &state);
+        liveScanner (&opts, &state);
     }
   cleanupAndExit (&opts, &state);
   return (0);
