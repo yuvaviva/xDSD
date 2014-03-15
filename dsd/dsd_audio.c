@@ -90,14 +90,16 @@ processAudio (dsd_opts * opts, dsd_state * state)
       gaindelta = (float) 0;
     }
 
-  // adjust output gain
-  state->audio_out_temp_buf_p = state->audio_out_temp_buf;
-  for (n = 0; n < 160; n++)
-    {
-      *state->audio_out_temp_buf_p = (state->aout_gain + ((float) n * gaindelta)) * (*state->audio_out_temp_buf_p);
-      state->audio_out_temp_buf_p++;
-    }
-  state->aout_gain += ((float) 160 * gaindelta);
+  if(opts->audio_gain >= 0){
+    // adjust output gain
+    state->audio_out_temp_buf_p = state->audio_out_temp_buf;
+    for (n = 0; n < 160; n++)
+      {
+        *state->audio_out_temp_buf_p = (state->aout_gain + ((float) n * gaindelta)) * (*state->audio_out_temp_buf_p);
+        state->audio_out_temp_buf_p++;
+      }
+    state->aout_gain += ((float) 160 * gaindelta);
+  }
 
   // copy audio datat to output buffer and upsample if necessary
   state->audio_out_temp_buf_p = state->audio_out_temp_buf;
@@ -153,6 +155,9 @@ processAudio (dsd_opts * opts, dsd_state * state)
 void
 writeSynthesizedVoice (dsd_opts * opts, dsd_state * state)
 {
+  int n;
+  short aout_buf[160];
+  short *aout_buf_p;
 
 //  for(n=0; n<160; n++)
 //    printf("%d ", ((short*)(state->audio_out_temp_buf))[n]);
