@@ -53,7 +53,7 @@ playMbeFiles (dsd_opts * opts, dsd_state * state, int argc, char **argv)
               readAmbe2450Data (opts, state, ambe_d);
               mbe_processAmbe2450Dataf (state->audio_out_temp_buf, &state->errs, &state->errs2, state->err_str, ambe_d, state->cur_mp, state->prev_mp, state->prev_mp_enhanced, opts->uvquality);
               processAudio (opts, state);
-              if (opts->wav_out_fd != -1)
+              if (opts->wav_out_f != NULL)
                 {
                   writeSynthesizedVoice (opts, state);
                 }
