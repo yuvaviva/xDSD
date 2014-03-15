@@ -21,7 +21,6 @@
 #include <signal.h>
 #include <string.h>
 #include <errno.h>
-#define __USE_XOPEN
 #include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
