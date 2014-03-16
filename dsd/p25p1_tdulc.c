@@ -28,7 +28,7 @@ processTDULC (dsd_opts * opts, dsd_state * state)
   mfid[8] = 0;
   lcinfo[56] = 0;
 
-  skipDibit (opts, state, 25);
+  //skipDibit (opts, state, 25);
   count = 57;
 
   dibit = getDibit (opts, state);
