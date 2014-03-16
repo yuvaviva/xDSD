@@ -1,1 +1,1 @@
-extern const char GIT_TAG[];
+//extern const char GIT_TAG[];

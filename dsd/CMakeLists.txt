@@ -17,8 +17,8 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-include(git_revision)
-git_describe(GIT_TAG)
+#include(git_revision)
+#git_describe(GIT_TAG)
 
 set(CMAKE_BUILD_TYPE Debug)
 

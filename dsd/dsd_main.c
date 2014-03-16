@@ -24,7 +24,7 @@
 #include "nxdn_const.h"
 #include "dmr_const.h"
 #include "provoice_const.h"
-#include "git_ver.h"
+//#include "git_ver.h"
 
 int
 comp (const void *a, const void *b)
@@ -415,7 +415,7 @@ main (int argc, char **argv)
   char versionstr[25];
   mbe_printVersion (versionstr);
 
-  printf ("Digital Speech Decoder 1.7.0-dev (build:%s)\n", GIT_TAG);
+  //printf ("Digital Speech Decoder 1.7.0-dev (build:%s)\n", GIT_TAG);
   printf ("mbelib version %s\n", versionstr);
 
   initOpts (&opts);
