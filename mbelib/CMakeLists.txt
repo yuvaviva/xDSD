@@ -17,5 +17,5 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
-add_library(mbe ambe3600x2250.c ecc.c imbe7100x4400.c imbe7200x4400.c mbelib.c)
+add_library(mbe ambe3600x2250.c ambe3600x2400.c ambe3600x2450.c ecc.c imbe7100x4400.c imbe7200x4400.c mbelib.c)
 add_definitions(-fPIC)
