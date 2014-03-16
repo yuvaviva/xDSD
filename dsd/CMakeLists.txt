@@ -17,6 +17,9 @@
 # the Free Software Foundation, Inc., 51 Franklin Street,
 # Boston, MA 02110-1301, USA.
 
+include(git_revision)
+git_describe(GIT_TAG)
+
 set(CMAKE_BUILD_TYPE Debug)
 
 add_library(dsd dmr_data.c dmr_voice.c dsd_audio.c dsd_dibit.c dsd_file.c dsd_frame.c dsd_frame_sync.c dsd_main.c dsd_mbe.c dsd_serial.c dsd_filters.c dsd_symbol.c dsd_upsample.c dstar.c dstar_header.c nxdn96.c nxdn_data.c nxdn_voice.c p25_lcw.c p25p1_check_hdu.cpp p25p1_check_nid.cpp p25p1_hdu.c p25p1_ldu1.c p25p1_ldu2.c p25p1_tdulc.c provoice.c x2tdma_data.c x2tdma_voice.c)
