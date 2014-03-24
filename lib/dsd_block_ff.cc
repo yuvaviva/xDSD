@@ -30,7 +30,7 @@
 #endif
 
 #include <dsd_block_ff.h>
-#include <gr_io_signature.h>
+#include <gnuradio/io_signature.h>
 
 
 #include <sys/syscall.h>
@@ -89,9 +89,9 @@ void* run_dsd (void *arg)
  */
 
 dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity, bool empty, int num)
-  : gr_block ("block_ff",
-	      gr_make_io_signature (MIN_IN, MAX_IN, sizeof (float)),
-	      gr_make_io_signature (MIN_OUT, MAX_OUT, sizeof (float)))
+  : gr::block ("block_ff",
+	      gr::io_signature::make(MIN_IN, MAX_IN, sizeof (float)),
+	      gr::io_signature::make(MIN_OUT, MAX_OUT, sizeof (float)))
 {
   initOpts (&params.opts);
   initState (&params.state);
