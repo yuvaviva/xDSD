@@ -221,7 +221,15 @@ playSynthesizedVoice (dsd_opts * opts, dsd_state * state)
   if (state->audio_out_idx > opts->delay)
     {
       // output synthesized speech to sound card
-      result = write (opts->audio_out_fd, (state->audio_out_buf_p - state->audio_out_idx), (state->audio_out_idx * 2));
+      if (opts->audio_out_fd == -1)
+        {
+          memcpy(state->output_buffer + state->output_offset, (state->audio_out_buf_p - state->audio_out_idx), (state->audio_out_idx * 2));
+          state->output_offset += state->audio_out_idx;
+        }
+      else
+        {
+          result = write (opts->audio_out_fd, (state->audio_out_buf_p - state->audio_out_idx), (state->audio_out_idx * 2));
+        }
       state->audio_out_idx = 0;
     }
 
