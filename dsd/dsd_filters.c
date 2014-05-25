@@ -1,3 +1,5 @@
+#include "dsd.h"
+
 // DMR filter
 #define NZEROS 60
 float ngain = 7.423339364f;
