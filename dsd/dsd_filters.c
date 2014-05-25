@@ -1,7 +1,7 @@
 // DMR filter
 #define NZEROS 60
 float ngain = 7.423339364f;
-static float xv[NZEROS+1];
+//static float xv[NZEROS+1]; defined in state instead
 float xcoeffs[] =
 { -0.0083649323f, -0.0265444850f, -0.0428141462f, -0.0537571943f,
 -0.0564141052f, -0.0489161045f, -0.0310068662f, -0.0043393881f,
@@ -25,7 +25,7 @@ float xcoeffs[] =
 #define NXZEROS 134
 float nxgain = 15.95930463f;
 
-static float nxv[NXZEROS+1];
+//static float nxv[NXZEROS+1]; Defined in State instead 
 
 float nxcoeffs[] =
 { +0.031462429f, +0.031747267f, +0.030401148f, +0.027362877f,
@@ -64,23 +64,23 @@ float nxcoeffs[] =
 +0.030401148f, +0.031747267f, +0.031462429f,
 };
 
-short dsd_input_filter(short sample, int mode);
+short dsd_input_filter(short sample, int mode, dsd_state * state);
 
 short
-dmr_filter(short sample)
+dmr_filter(short sample, dsd_state * state)
 {
-    return dsd_input_filter(sample, 1);
+    return dsd_input_filter(sample, 1, state);
 }
 
 short
-nxdn_filter(short sample)
+nxdn_filter(short sample, dsd_state * state)
 {
-    return dsd_input_filter(sample, 2);
+    return dsd_input_filter(sample, 2, state);
 }
 
 
 short
-dsd_input_filter(short sample, int mode)
+dsd_input_filter(short sample, int mode, dsd_state * state)
 {
   float sum; int i;
   float gain;
@@ -89,13 +89,13 @@ dsd_input_filter(short sample, int mode)
   switch(mode) {
     case 1:
       gain = ngain;
-      v = xv;
+      v = state->xv;
       coeffs = xcoeffs;
       zeros = NZEROS;
       break;
     case 2:
       gain = nxgain;
-      v = nxv;
+      v = state->nxv;
       coeffs = nxcoeffs;
       zeros = NXZEROS;
       break;
