@@ -288,7 +288,7 @@ processTDULC (dsd_opts* opts, dsd_state* state)
 
 
   // Next 10 dibits should be zeros
-  read_zeros(opts, state, analog_signal_array + 6*(6+6)+6*(6+6), 20, &status_count, 0);
+  read_zeros(opts, state, analog_signal_array + 6*(6+6)+6*(6+6), 20, &status_count, 1);
 
   // Next we should find an status dibit
   if (status_count != 35) {
