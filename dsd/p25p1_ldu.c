@@ -6,8 +6,8 @@
 #include "p25p1_heuristics.h"
 
 #ifdef TRACE_DSD
-static void
-debug_write_label_imbe(dsd_state* state, unsigned int cc, int bitindex, char bit)
+//static 
+void debug_write_label_imbe(dsd_state* state, unsigned int cc, int bitindex, char bit)
 {
   float left, right;
 
@@ -24,8 +24,8 @@ debug_write_label_imbe(dsd_state* state, unsigned int cc, int bitindex, char bit
 /**
  * Logs the IMBE's c0-c6 words.
  */
-static void
-debug_log_imbe(char imbe_fr[8][23])
+//static 
+ void debug_log_imbe(char imbe_fr[8][23])
 {
   int i, j;
   printf("    ");

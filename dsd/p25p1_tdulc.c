@@ -30,8 +30,8 @@
  * some algorithms.
  * \param dodeca The 12-bit word to reverse.
  */
-static void
-swap_hex_words_bits(char* dodeca)
+//static 
+void swap_hex_words_bits(char* dodeca)
 {
   int j;
   for(j=0; j<6; j++)
@@ -48,8 +48,8 @@ swap_hex_words_bits(char* dodeca)
  * \param dodeca_data Pointer to the start of the 12-bit words sequence.
  * \param dodeca_parity Pointer to the parities sequence.
  */
-static void
-swap_hex_words(char* dodeca_data, char* dodeca_parity)
+//static 
+void swap_hex_words(char* dodeca_data, char* dodeca_parity)
 {
   int i;
   for(i=0; i<6; i++)
@@ -62,8 +62,8 @@ swap_hex_words(char* dodeca_data, char* dodeca_parity)
 /**
  * Read an hex word, its parity bits and attempts to error correct it using the Hamming algorithm.
  */
-static void
-read_and_correct_dodeca_word (dsd_opts* opts, dsd_state* state, char* dodeca, int* status_count,
+//static 
+void read_and_correct_dodeca_word (dsd_opts* opts, dsd_state* state, char* dodeca, int* status_count,
         AnalogSignal* analog_signal_array, int* analog_signal_index)
 {
   char parity[12];
@@ -127,8 +127,8 @@ read_and_correct_dodeca_word (dsd_opts* opts, dsd_state* state, char* dodeca, in
  * \param count Number of words in the sequence.
  * \param analog_signal_array Pointer to a sequence of AnalogSignal elements, as many as the value of count.
  */
-static void
-correct_golay_dibits_12(char* data, int count, AnalogSignal* analog_signal_array)
+//static 
+void correct_golay_dibits_12(char* data, int count, AnalogSignal* analog_signal_array)
 {
   int i, j;
   int analog_signal_index;

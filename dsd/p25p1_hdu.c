@@ -112,8 +112,8 @@ read_hamm_parity (dsd_opts* opts, dsd_state* state, char* parity, int* status_co
 /**
  * Corrects a hex (6 bit) word  using the Golay 24 FEC.
  */
-static void
-correct_hex_word (dsd_state* state, char* hex, char* parity)
+//static 
+ void correct_hex_word (dsd_state* state, char* hex, char* parity)
 {
   int fixed_errors;
   int irrecoverable_errors;
@@ -130,8 +130,8 @@ correct_hex_word (dsd_state* state, char* hex, char* parity)
 /**
  * Reads an hex word, its parity bits and attempts to error correct it using the Golay24 algorithm.
  */
-static void
-read_and_correct_hex_word (dsd_opts* opts, dsd_state* state, char* hex, int* status_count,
+//static 
+ void read_and_correct_hex_word (dsd_opts* opts, dsd_state* state, char* hex, int* status_count,
         AnalogSignal* analog_signal_array, int* analog_signal_index)
 {
   char parity[12];
@@ -154,8 +154,8 @@ read_and_correct_hex_word (dsd_opts* opts, dsd_state* state, char* hex, int* sta
  * \param hex_count The number of hex words in the sequence.
  * \param analog_signal_array A pointer to the AnalogSignal information for the sequence of hex words.
  */
-static void
-correct_golay_dibits_6(char* corrected_hex_data, int hex_count, AnalogSignal* analog_signal_array)
+//static 
+ void correct_golay_dibits_6(char* corrected_hex_data, int hex_count, AnalogSignal* analog_signal_array)
 {
   int i, j;
   int analog_signal_index;
