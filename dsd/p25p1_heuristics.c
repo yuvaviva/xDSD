@@ -86,8 +86,7 @@
  * The value of the previous dibit is only taken into account on the C4FM modulation. QPSK and GFSK are
  * not improved by this technique.
  */
-//static 
-int use_previous_dibit(int rf_mod)
+static int use_previous_dibit(int rf_mod)
 {
     // 0: C4FM modulation
     // 1: QPSK modulation
@@ -105,8 +104,7 @@ int use_previous_dibit(int rf_mod)
  * \param dibit The current dibit. Will be different from original_dibit if the FEC fixed it.
  * \param analog_value The actual analog signal value from which the original_dibit was derived.
  */
-//static 
- void update_p25_heuristics(P25Heuristics* heuristics, int previous_dibit, int original_dibit, int dibit, int analog_value)
+static void update_p25_heuristics(P25Heuristics* heuristics, int previous_dibit, int original_dibit, int dibit, int analog_value)
 {
     float mean;
     int old_value;
@@ -203,8 +201,7 @@ void contribute_to_heuristics(int rf_mod, P25Heuristics* heuristics, AnalogSigna
  * Initializes the symbol's heuristics state.
  * \param sh The SymbolHeuristics structure to initialize.
  */
-//static 
- void initialize_symbol_heuristics(SymbolHeuristics* sh)
+static void initialize_symbol_heuristics(SymbolHeuristics* sh)
 {
     sh->count = 0;
     sh->index = 0;
@@ -230,8 +227,7 @@ void initialize_p25_heuristics(P25Heuristics* heuristics)
  * simplify very much. We don't really need to know the actual PDF value, just which Gaussian's got the
  * highest PDF, which is a simpler problem.
  */
-//static 
- float evaluate_pdf(SymbolHeuristics* se, int value)
+static float evaluate_pdf(SymbolHeuristics* se, int value)
 {
     float x = (se->count*((float)value) - se->sum);
     float y = -0.5F*x*x/(se->count*se->var_sum);
@@ -244,8 +240,7 @@ void initialize_p25_heuristics(P25Heuristics* heuristics)
 /**
  * Logging of the internal PDF values for a given analog value and previous dibit.
  */
-//static 
- void debug_log_pdf(P25Heuristics* heuristics, int previous_dibit, int analog_value)
+static void debug_log_pdf(P25Heuristics* heuristics, int previous_dibit, int analog_value)
 {
     int i;
     float pdfs[4];
@@ -317,8 +312,7 @@ int estimate_symbol(int rf_mod, P25Heuristics* heuristics, int previous_dibit, i
 /**
  * Logs the internal state of the heuristic's state. Good for debugging.
  */
-//static 
- void debug_print_symbol_heuristics(int previous_dibit, int dibit, SymbolHeuristics* sh)
+static void debug_print_symbol_heuristics(int previous_dibit, int dibit, SymbolHeuristics* sh)
 {
     float mean, sd;
     int k;

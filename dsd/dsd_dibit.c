@@ -21,8 +21,8 @@
 
 #include "p25p1_heuristics.h"
 
-//static 
-void print_datascope(dsd_opts* opts, dsd_state* state, int* sbuf2)
+static void
+print_datascope(dsd_opts* opts, dsd_state* state, int* sbuf2)
 {
   int i, j, o;
   char modulation[8];
@@ -115,8 +115,8 @@ void print_datascope(dsd_opts* opts, dsd_state* state, int* sbuf2)
     }
 }
 
-//static 
-void use_symbol (dsd_opts* opts, dsd_state* state, int symbol)
+static void
+use_symbol (dsd_opts* opts, dsd_state* state, int symbol)
 {
   int i;
   int sbuf2[128];
@@ -190,8 +190,8 @@ void use_symbol (dsd_opts* opts, dsd_state* state, int symbol)
     }
 }
 
-//static 
-int invert_dibit(int dibit)
+static int
+invert_dibit(int dibit)
 {
     switch (dibit)
     {
@@ -210,8 +210,7 @@ int invert_dibit(int dibit)
     return -1;
 }
 
-//static 
-int digitize (dsd_opts* opts, dsd_state* state, int symbol)
+static int digitize (dsd_opts* opts, dsd_state* state, int symbol)
 {
   // determine dibit state
   if ((state->synctype == 6) || (state->synctype == 14)|| (state->synctype == 18))
