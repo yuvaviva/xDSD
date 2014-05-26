@@ -131,7 +131,7 @@ read_hamm_parity (dsd_opts* opts, dsd_state* state, char* parity, int* status_co
  * Reads an hex word, its parity bits and attempts to error correct it using the Golay24 algorithm.
  */
 //static 
- void read_and_correct_hex_word (dsd_opts* opts, dsd_state* state, char* hex, int* status_count,
+ void hdu_read_and_correct_hex_word (dsd_opts* opts, dsd_state* state, char* hex, int* status_count,
         AnalogSignal* analog_signal_array, int* analog_signal_index)
 {
   char parity[12];
@@ -241,7 +241,7 @@ processHDU(dsd_opts* opts, dsd_state* state)
   // Read 20 hex words, correct them using their Golay 24 parity data.
   for (i=19; i>=0; i--)
     {
-      read_and_correct_hex_word (opts, state, hex, &status_count, analog_signal_array, &analog_signal_index);
+      hdu_read_and_correct_hex_word (opts, state, hex, &status_count, analog_signal_array, &analog_signal_index);
       // Store the corrected hex word into the hex_data store:
       for (j=0; j<6; j++)
         {
@@ -252,7 +252,7 @@ processHDU(dsd_opts* opts, dsd_state* state)
   // Read the 16 parity hex word. These are used to FEC the 20 hex words using Reed-Solomon.
   for (i=15; i>=0; i--)
     {
-      read_and_correct_hex_word (opts, state, hex, &status_count, analog_signal_array, &analog_signal_index);
+      hdu_read_and_correct_hex_word (opts, state, hex, &status_count, analog_signal_array, &analog_signal_index);
       // Store the corrected hex word into the hex_parity store:
       for (j=0; j<6; j++)
         {
