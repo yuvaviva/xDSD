@@ -72,7 +72,7 @@
  * to disable.
  */
 
-//#define USE_PREVIOUS_DIBIT
+#define USE_PREVIOUS_DIBIT
 
 /**
  * There is a minimum of cleared analog values we need to produce a meaningful mean and std deviation.
