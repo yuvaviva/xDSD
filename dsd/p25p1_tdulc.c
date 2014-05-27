@@ -69,6 +69,7 @@ read_and_correct_dodeca_word (dsd_opts* opts, dsd_state* state, char* dodeca, in
   char parity[12];
   int fixed_errors;
   int irrecoverable_errors;
+  int i;
 
   // Read the hex word
   read_word (opts, state, dodeca, 12, status_count, analog_signal_array, analog_signal_index);
