@@ -288,6 +288,7 @@ processTDULC (dsd_opts* opts, dsd_state* state)
 
 
   // Next 10 dibits should be zeros
+  printf("irrecoverable_errors: %d", irrecoverable_errors);
   read_zeros(opts, state, analog_signal_array + 6*(6+6)+6*(6+6), 20, &status_count, 0);
 
   // Next we should find an status dibit
