@@ -23,7 +23,7 @@
 #include "p25p1_heuristics.h"
 
 // Uncomment for some verbose debug info
-#define TDULC_DEBUG
+//#define TDULC_DEBUG
 
 /**
  * Reverse the order of bits in a 12-bit word. We need this to accommodate to the expected bit order in
@@ -289,7 +289,7 @@ processTDULC (dsd_opts* opts, dsd_state* state)
 
 
   // Next 10 dibits should be zeros
-  printf("irrecoverable_errors: %d", irrecoverable_errors);
+  printf("irrecoverable_errors: %d \n", irrecoverable_errors);
   read_zeros(opts, state, analog_signal_array + 6*(6+6)+6*(6+6), 20, &status_count, 0);
 
   // Next we should find an status dibit
