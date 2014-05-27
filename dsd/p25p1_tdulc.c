@@ -23,7 +23,7 @@
 #include "p25p1_heuristics.h"
 
 // Uncomment for some verbose debug info
-//#define TDULC_DEBUG
+#define TDULC_DEBUG
 
 /**
  * Reverse the order of bits in a 12-bit word. We need this to accommodate to the expected bit order in
