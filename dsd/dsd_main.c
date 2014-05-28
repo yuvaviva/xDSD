@@ -72,6 +72,10 @@ noCarrier (dsd_opts * opts, dsd_state * state)
       state->aout_gain = 25;
     }
   memset (state->aout_max_buf, 0, sizeof (float) * 200);
+  memset (state->xv, 0, sizeof (float) * (NZEROS+1));
+  memset (state->nxv, 0, sizeof (float) * (NXZEROS+1));
+  float xv[NZEROS+1];
+  float nxv[NXZEROS+1];
   state->aout_max_buf_p = state->aout_max_buf;
   state->aout_max_buf_idx = 0;
   sprintf (state->algid, "________");
@@ -306,7 +310,7 @@ void puts_thread_scheduling(char *who)
 struct sched_param thread_param;
 pthread_attr_t thread_attr;
 int thread_policy = 0;
- 
+
 pthread_attr_init(&thread_attr);
 pthread_attr_getschedparam(&thread_attr, &thread_param);
 pthread_attr_getschedpolicy(&thread_attr, &thread_policy);
@@ -319,7 +323,7 @@ case SCHED_OTHER: printf("OTHER"); break;
 default: printf("UNKONW"); break;
 }
 printf("\n");
- 
+
 }
 
 int needQuit(dsd_state * state)
@@ -345,7 +349,7 @@ liveScanner (dsd_opts * opts, dsd_state * state)
 	long pid;
 	tid = syscall(SYS_gettid);
 	pid = pthread_self();
-	
+
 	printf("[ Pthread: %lu - PID: %ld ]\n",pid,tid);
 	puts_thread_scheduling("Thread");*/
 
@@ -362,6 +366,7 @@ liveScanner (dsd_opts * opts, dsd_state * state)
   while (!state->exitflag) //!needQuit(state))
     {
       pthread_testcancel();
+      printf("Lost Sync: calling noCarrier\n");
       noCarrier (opts, state);
       state->synctype = getFrameSync (opts, state);
       // recalibrate center/umid/lmid
@@ -370,9 +375,9 @@ liveScanner (dsd_opts * opts, dsd_state * state)
       state->lmid = (((state->min) - state->center) * 5 / 8) + state->center;
       while (state->synctype != -1)
         {
-	  if(state->exitflag) {
-		break;
-}
+	         if(state->exitflag) {
+		           break;
+             }
           processFrame (opts, state);
 
 #ifdef TRACE_DSD

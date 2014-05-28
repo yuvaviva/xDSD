@@ -103,9 +103,11 @@ private:
   dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations mod, int uvquality, bool errorbars, int verbosity, bool empty, int num); // private constructor
 bool empty_frames;
 pthread_t dsd_thread;
-  
+
  public:
   ~dsd_block_ff ();	// public destructor
+  no_carrier();
+  dsd_state *get_state();
   int close();
   // Where all the action really happens
 

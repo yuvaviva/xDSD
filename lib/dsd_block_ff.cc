@@ -71,7 +71,7 @@ pthread_mutex_destroy(&params->state.input_mutex);
 pthread_cond_destroy(&params->state.input_ready);
 pthread_cond_destroy(&params->state.output_ready);
 printf(" - Pthread destructor [ %d ] \n", params->num);
- 
+
 }
 
 void* run_dsd (void *arg)
@@ -82,6 +82,17 @@ void* run_dsd (void *arg)
   liveScanner (&params->opts, &params->state);
   pthread_cleanup_pop(0);
   return NULL;
+}
+
+dsd_block_ff::no_carrier(){
+  printf("Deactivating Logger - Calling no_carrier\n");
+  noCarrier(&params.opts, &params.state );
+}
+
+dsd_state *dsd_block_ff::get_state()
+{
+
+  return &params.state;
 }
 
 /*
@@ -335,7 +346,7 @@ pthread_attr_destroy(&tattr);
 }
 int dsd_block_ff::close () {
 
-  
+
 
 
 }
@@ -357,18 +368,18 @@ free(params.state.output_buffer);
 
 
   //printf("dsd_block_ff: Trying to free memory/ \n");
-  
+
 
   free(params.state.dibit_buf);
   free(params.state.audio_out_buf);
   free(params.state.audio_out_float_buf);
-  free(params.state.cur_mp); 
+  free(params.state.cur_mp);
   free(params.state.prev_mp);
-  free(params.state.prev_mp_enhanced); 
-  
+  free(params.state.prev_mp_enhanced);
+
 
   printf(" - dsd_block_ff destructor [ %d ] \n", params.num);
- 
+
 }
 
 int
@@ -379,7 +390,7 @@ dsd_block_ff::general_work (int noutput_items,
 {
   int i;
   int send_to_dsd = 0;
-  
+
   const float *in = (const float *) input_items[0];
   float *out = (float *) output_items[0];
 //memcpy(out, in, ninput_items[0] * sizeof(float));
@@ -425,12 +436,12 @@ dsd_block_ff::general_work (int noutput_items,
 if (empty_frames) {
 
   this->consume(0, ninput_items[0]);
-	
+
 return (noutput_items);
 } else {
 
   this->consume(0, ninput_items[0]);
-	 
+
   return params.state.output_num_samples;
 
 if ((params.state.output_num_samples > 0) && (params.state.output_num_samples < noutput_items)) {
@@ -439,7 +450,7 @@ if ((params.state.output_num_samples > 0) && (params.state.output_num_samples < 
 } else {
 
   this->consume(0, ninput_items[0]);
-	 
+
   return params.state.output_num_samples;
 }
 
