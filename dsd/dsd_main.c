@@ -72,6 +72,7 @@ noCarrier (dsd_opts * opts, dsd_state * state)
       state->aout_gain = 25;
     }
   memset (state->aout_max_buf, 0, sizeof (float) * 200);
+  memset (state->src_list, 0, sizeof (int) * 50);
   memset (state->xv, 0, sizeof (float) * (NZEROS+1));
   memset (state->nxv, 0, sizeof (float) * (NXZEROS+1));
   float xv[NZEROS+1];
@@ -153,6 +154,7 @@ initState (dsd_state * state)
   state->audio_out_buf_p = state->audio_out_buf + 100;
   state->audio_out_float_buf = malloc (sizeof (float) * 1000000);
   memset (state->audio_out_float_buf, 0, 100 * sizeof (float));
+  memset (state->src_list, 0, sizeof (int) * 50);
   state->audio_out_float_buf_p = state->audio_out_float_buf + 100;
   state->audio_out_idx = 0;
   state->audio_out_idx2 = 0;

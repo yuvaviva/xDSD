@@ -1,6 +1,22 @@
 #include "dsd.h"
 
 void
+addSource(int source, dsd_state * state) {
+  int ins=0;
+  if (source != 0) {
+    while (state->src_list[ins]) {
+      if (state->src_list[ins] == source) {
+        return;
+      }
+      ins++;
+    }
+    if (ins < 48) {
+      state->src_list[ins] = source;
+    }
+  }
+}
+
+void
 processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, char *lcinfo)
 {
 
@@ -147,6 +163,7 @@ processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, c
         }
       tmpstr[24] = 0;
       source = strtol (tmpstr, NULL, 2);
+      addSource(source,state);
       state->lastsrc = source;
       if (opts->p25tg == 1)
         {
