@@ -106,7 +106,7 @@ pthread_t dsd_thread;
 
  public:
   ~dsd_block_ff ();	// public destructor
-  no_carrier();
+  void no_carrier();
   dsd_state *get_state();
   int close();
   // Where all the action really happens

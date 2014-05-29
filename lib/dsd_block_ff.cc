@@ -84,7 +84,7 @@ void* run_dsd (void *arg)
   return NULL;
 }
 
-dsd_block_ff::no_carrier(){
+void dsd_block_ff::no_carrier(){
   printf("Deactivating Logger - Calling no_carrier\n");
   noCarrier(&params.opts, &params.state );
 }
