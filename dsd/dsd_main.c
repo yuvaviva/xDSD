@@ -366,7 +366,6 @@ liveScanner (dsd_opts * opts, dsd_state * state)
   while (!state->exitflag) //!needQuit(state))
     {
       pthread_testcancel();
-      printf("Lost Sync: calling noCarrier\n");
       noCarrier (opts, state);
       state->synctype = getFrameSync (opts, state);
       // recalibrate center/umid/lmid
