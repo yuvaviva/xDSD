@@ -227,8 +227,8 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
   params.opts.uvquality = uvquality;
 
 if (errorbars){
-    params.opts.verbose = verbosity;
-    params.opts.errorbars = errorbars;
+    params.opts.verbose = 0;//verbosity;
+    params.opts.errorbars = 0;//errorbars;
     params.opts.datascope = 1;
 }
 
