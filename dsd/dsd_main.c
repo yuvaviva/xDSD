@@ -72,11 +72,7 @@ noCarrier (dsd_opts * opts, dsd_state * state)
       state->aout_gain = 25;
     }
   memset (state->aout_max_buf, 0, sizeof (float) * 200);
-  memset (state->src_list, 0, sizeof (int) * 50);
-  memset (state->xv, 0, sizeof (float) * (NZEROS+1));
-  memset (state->nxv, 0, sizeof (float) * (NXZEROS+1));
-  float xv[NZEROS+1];
-  float nxv[NXZEROS+1];
+
   state->aout_max_buf_p = state->aout_max_buf;
   state->aout_max_buf_idx = 0;
   sprintf (state->algid, "________");

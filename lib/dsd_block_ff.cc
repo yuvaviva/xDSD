@@ -84,9 +84,15 @@ void* run_dsd (void *arg)
   return NULL;
 }
 
-void dsd_block_ff::no_carrier(){
-  printf("Deactivating Logger - Calling no_carrier\n");
-  noCarrier(&params.opts, &params.state );
+void dsd_block_ff::reset_state(){
+  dsd_state *state = &params.state;
+  memset (state->src_list, 0, sizeof (int) * 50);
+  memset (state->xv, 0, sizeof (float) * (NZEROS+1));
+  memset (state->nxv, 0, sizeof (float) * (NXZEROS+1));
+  state->debug_audio_errors = 0;
+  state->debug_header_errors = 0;
+  state->debug_header_critical_errors = 0;
+  state->symbolcnt = 0;
 }
 
 dsd_state *dsd_block_ff::get_state()
@@ -232,7 +238,7 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
  params.opts.verbose = 0;//verbosity;
     params.opts.errorbars = 0;//errorbars;
 if (errorbars){
-   
+
     params.opts.datascope = 1;
 }
 */
