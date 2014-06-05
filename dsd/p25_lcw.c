@@ -3,7 +3,6 @@
 void
 addSource(int source, dsd_state * state) {
   int ins=0;
-  printf("Source: %d\n",source);
   if (source != 0) {
     while (state->src_list[ins]!=0) {
       if (state->src_list[ins] == source) {

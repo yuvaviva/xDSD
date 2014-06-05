@@ -231,17 +231,17 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
   }
 
   params.opts.uvquality = uvquality;
- params.opts.verbose = verbosity;
-    params.opts.errorbars = errorbars;
+// params.opts.verbose = verbosity;
+  //  params.opts.errorbars = errorbars;
 
-/*
+
  params.opts.verbose = 0;//verbosity;
     params.opts.errorbars = 0;//errorbars;
 if (errorbars){
 
     params.opts.datascope = 1;
 }
-*/
+
   empty_frames = empty;
 
   if (mod == dsd_MOD_AUTO_SELECT)
