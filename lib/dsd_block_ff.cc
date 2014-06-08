@@ -86,7 +86,7 @@ void* run_dsd (void *arg)
 
 void dsd_block_ff::reset_state(){
   dsd_state *state = &params.state;
-  memset (state->src_list, 0, sizeof (int) * 50);
+  memset (state->src_list, 0, sizeof (long) * 50);
   memset (state->xv, 0, sizeof (float) * (NZEROS+1));
   memset (state->nxv, 0, sizeof (float) * (NXZEROS+1));
   state->debug_audio_errors = 0;

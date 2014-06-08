@@ -1,7 +1,7 @@
 #include "dsd.h"
 
 void
-addSource(int source, dsd_state * state) {
+addSource(long source, dsd_state * state) {
   int ins=0;
   if (source != 0) {
     while (state->src_list[ins]!=0) {
