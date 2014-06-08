@@ -234,9 +234,7 @@ dsd_block_ff::dsd_block_ff (dsd_frame_mode frame, dsd_modulation_optimizations m
  params.opts.verbose = verbosity;
     params.opts.errorbars = errorbars;
 
-if (errorbars ==1) {
-  params.opts.p25tg =1;
-}
+
 
 /*
  params.opts.verbose = 0;//verbosity;

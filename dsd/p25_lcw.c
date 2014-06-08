@@ -165,10 +165,10 @@ processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, c
       source = strtol (tmpstr, NULL, 2);
       addSource(source,state);
       state->lastsrc = source;
-      if (opts->p25tg == 1)
-        {
+      //if (opts->p25tg == 1)
+       // {
           printf ("src: %li emr: %c\n", source, lcinfo[0]);
-        }
+       // }
     }
   else if ((opts->p25tg == 1) && (opts->p25lc == 1))
     {
