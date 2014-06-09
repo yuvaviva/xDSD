@@ -306,7 +306,7 @@ void upsample (dsd_state * state, float invalue);
 void processDSTAR (dsd_opts * opts, dsd_state * state);
 void processNXDNVoice (dsd_opts * opts, dsd_state * state);
 void processNXDNData (dsd_opts * opts, dsd_state * state);
-void processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, char *lcinfo);
+void processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, char *lcinfo, int irrecoverable_errors);
 void processHDU (dsd_opts * opts, dsd_state * state);
 void processLDU1 (dsd_opts * opts, dsd_state * state);
 void processLDU2 (dsd_opts * opts, dsd_state * state);

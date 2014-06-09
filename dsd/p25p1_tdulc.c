@@ -387,5 +387,5 @@ processTDULC (dsd_opts* opts, dsd_state* state)
   lcinfo[54]  = dodeca_data[0][10] + '0';
   lcinfo[55]  = dodeca_data[0][11] + '0';
 
-  processP25lcw (opts, state, lcformat, mfid, lcinfo);
+  processP25lcw (opts, state, lcformat, mfid, lcinfo, irrecoverable_errors);
 }

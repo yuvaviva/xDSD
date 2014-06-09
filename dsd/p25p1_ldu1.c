@@ -330,5 +330,5 @@ processLDU1 (dsd_opts* opts, dsd_state* state)
   lcinfo[54]  = hex_data[ 0][4] + '0';
   lcinfo[55]  = hex_data[ 0][5] + '0';
 
-  processP25lcw (opts, state, lcformat, mfid, lcinfo);
+  processP25lcw (opts, state, lcformat, mfid, lcinfo, irrecoverable_errors);
 }
