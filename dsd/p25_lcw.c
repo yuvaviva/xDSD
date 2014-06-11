@@ -165,9 +165,9 @@ processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, c
       source = strtol (tmpstr, NULL, 2);
       if (!irrecoverable_errors) {
         addSource(source,state);
-        printf ("src: %li emr: %c\n", source, lcinfo[0]);
+        //printf ("src: %li emr: %c\n", source, lcinfo[0]);
       } else {
-        printf ("src: %li emr: %c \t[ Header Error ]\n", source, lcinfo[0]);
+        //printf ("src: %li emr: %c \t[ Header Error ]\n", source, lcinfo[0]);
       }
       state->lastsrc = source;
       //if (opts->p25tg == 1)

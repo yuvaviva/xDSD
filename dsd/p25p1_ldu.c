@@ -137,7 +137,7 @@ process_IMBE (dsd_opts* opts, dsd_state* state, int* status_count)
 
           if (match) {
               // Skip this particular value. If we let it pass it will be signaled as an erroneus IMBE
-              printf("(Non-standard IMBE c0 detected, skipped)");
+              //printf("(Non-standard IMBE c0 detected, skipped)");
           } else {
               processMbeFrame (opts, state, imbe_fr, NULL, NULL);
           }

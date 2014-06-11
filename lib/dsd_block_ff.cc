@@ -93,6 +93,7 @@ void dsd_block_ff::reset_state(){
   state->debug_header_errors = 0;
   state->debug_header_critical_errors = 0;
   state->symbolcnt = 0;
+  initialize_p25_heuristics(state->p25_heuristics);
 }
 
 dsd_state *dsd_block_ff::get_state()
