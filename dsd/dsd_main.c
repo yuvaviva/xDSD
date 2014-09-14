@@ -60,6 +60,7 @@ noCarrier (dsd_opts * opts, dsd_state * state)
   state->errs2 = 0;
   state->lasttg = 0;
   state->lastsrc = 0;
+  state->last_dibit = 0;
   state->lastp25type = 0;
   state->repeat = 0;
   state->nac = 0;
@@ -235,7 +236,7 @@ initState (dsd_state * state)
   state->debug_label_dibit_file = NULL;
   state->debug_label_imbe_file = NULL;
 #endif
-
+  state->last_dibit = 0;
   initialize_p25_heuristics(&state->p25_heuristics);
 }
 

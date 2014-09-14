@@ -81,7 +81,7 @@
 
 
 //Uncomment to disable the behaviour of this module.
-#define DISABLE_HEURISTICS
+//#define DISABLE_HEURISTICS
 
 /**
  * The value of the previous dibit is only taken into account on the C4FM modulation. QPSK and GFSK are
