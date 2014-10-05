@@ -1,7 +1,23 @@
 #include "dsd.h"
 
 void
-processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, char *lcinfo)
+addSource(long source, dsd_state * state) {
+  int ins=0;
+  if (source != 0) {
+    while (state->src_list[ins]!=0) {
+      if (state->src_list[ins] == source) {
+        return;
+      }
+      ins++;
+    }
+    if (ins < 48) {
+      state->src_list[ins] = source;
+    }
+  }
+}
+
+void
+processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, char *lcinfo, int irrecoverable_errors)
 {
 
   char tgid[17], tmpstr[255];
@@ -147,11 +163,17 @@ processP25lcw (dsd_opts * opts, dsd_state * state, char *lcformat, char *mfid, c
         }
       tmpstr[24] = 0;
       source = strtol (tmpstr, NULL, 2);
+      if (!irrecoverable_errors) {
+        addSource(source,state);
+        //printf ("src: %li emr: %c\n", source, lcinfo[0]);
+      } else {
+        //printf ("src: %li emr: %c \t[ Header Error ]\n", source, lcinfo[0]);
+      }
       state->lastsrc = source;
-      if (opts->p25tg == 1)
-        {
-          printf ("src: %li emr: %c\n", source, lcinfo[0]);
-        }
+      //if (opts->p25tg == 1)
+       // {
+          
+       // }
     }
   else if ((opts->p25tg == 1) && (opts->p25lc == 1))
     {

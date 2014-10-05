@@ -3,13 +3,19 @@
 #include "ReedSolomon.hpp"
 #include "Golay24.hpp"
 
-//#define __CHECK_HDU_DEBUG__
+// Uncomment for very verbose trace messages
+//#define CHECK_HDU_DEBUG
 
-int check_and_fix_golay24(char* hex, char* parity, int* fixed_errors)
+// The following methods are just a C bridge for the C++ implementations of the Golay and ReedSolomon
+// algorithms.
+
+static DSDGolay24 golay24;
+
+static DSDReedSolomon_36_20_17 reed_solomon_36_20_17;
+
+int check_and_fix_golay_24_6(char* hex, char* parity, int* fixed_errors)
 {
-    static DSDGolay24 golay24;
-
-#ifdef __CHECK_HDU_DEBUG__
+#ifdef CHECK_HDU_DEBUG
     printf("[");
     for(unsigned int i=0; i<6; i++) {
         printf("%c", (hex[i] != 0)? 'X': ' ');
@@ -21,30 +27,72 @@ int check_and_fix_golay24(char* hex, char* parity, int* fixed_errors)
     printf("]");
 #endif
 
-    int uncorrectable_errors = golay24.decode(hex, parity, fixed_errors);
+    int irrecoverable_errors = golay24.decode_6(hex, parity, fixed_errors);
 
-#ifdef __CHECK_HDU_DEBUG__
+#ifdef CHECK_HDU_DEBUG
     printf(" -> [");
     for(unsigned int i=0; i<6; i++) {
         printf("%c", (hex[i] != 0)? 'X': ' ');
     }
     printf("]");
-    if (uncorrectable_errors) {
-        printf("  Errors: +4");
+    if (irrecoverable_errors) {
+        printf("  Errors: >4");
     } else {
         printf("  Errors: %i", *fixed_errors);
     }
     printf("\n");
 #endif
 
-    return uncorrectable_errors;
+    return irrecoverable_errors;
 }
 
-void check_and_fix_redsolomon63(char* data, char* parity)
+int check_and_fix_golay_24_12(char* dodeca, char* parity, int* fixed_errors)
 {
-    static DSDReedSolomon_63_20_17 reed_solomon63;
+#ifdef CHECK_HDU_DEBUG
+    printf("[");
+    for(unsigned int i=0; i<12; i++) {
+        printf("%c", (dodeca[i] != 0)? 'X': ' ');
+    }
+    printf("]  [");
+    for(unsigned int i=12; i<24; i++) {
+        printf("%c", (parity[i-12] != 0)? 'X': ' ');
+    }
+    printf("]");
+#endif
 
-#ifdef __CHECK_HDU_DEBUG__
+    int irrecoverable_errors = golay24.decode_12(dodeca, parity, fixed_errors);
+
+#ifdef CHECK_HDU_DEBUG
+    printf(" -> [");
+    for(unsigned int i=0; i<12; i++) {
+        printf("%c", (dodeca[i] != 0)? 'X': ' ');
+    }
+    printf("]");
+    if (irrecoverable_errors) {
+        printf("  Errors: >4");
+    } else {
+        printf("  Errors: %i", *fixed_errors);
+    }
+    printf("\n");
+#endif
+
+    return irrecoverable_errors;
+}
+
+void encode_golay_24_6(char* hex, char* out_parity)
+{
+    golay24.encode_6(hex, out_parity);
+}
+
+void encode_golay_24_12(char* dodeca, char* out_parity)
+{
+    golay24.encode_12(dodeca, out_parity);
+}
+
+
+int check_and_fix_redsolomon_36_20_17(char* data, char* parity)
+{
+#ifdef CHECK_HDU_DEBUG
     char original[20][6];
     for (int i = 0; i < 20; i++) {
         for (int j = 0; j < 6; j++) {
@@ -53,22 +101,42 @@ void check_and_fix_redsolomon63(char* data, char* parity)
     }
 #endif
 
-    reed_solomon63.decode(data, parity);
+    int irrecoverable_errors = reed_solomon_36_20_17.decode(data, parity);
 
-#ifdef __CHECK_HDU_DEBUG__
-    printf("Results for Reed-Solomon code (n=%3d, k=%3d, t= %3d)\n\n", nn, kk, tt);
-    printf("  i  original fixed\n");
-    for (int i = 0; i < 20; i++) {
-        printf("%3d  [", i);
-        for (int j = 0; j < 6; j++) {
-            printf("%c", (original[i][j] == 1)? 'X' : ' ');
+#ifdef CHECK_HDU_DEBUG
+    printf("Results for Reed-Solomon code (36,20,17)\n\n");
+    if (irrecoverable_errors == 0) {
+        printf("  i  original fixed\n");
+        for (int i = 0; i < 20; i++) {
+            printf("%3d  [", i);
+            for (int j = 0; j < 6; j++) {
+                printf("%c", (original[i][j] == 1)? 'X' : ' ');
+            }
+            printf("] [");
+            for (int j = 0; j < 6; j++) {
+                printf("%c", (data[i*6+j] == 1)? 'X' : ' ');
+            }
+            printf("]\n");
         }
-        printf("] [");
-        for (int j = 0; j < 6; j++) {
-            printf("%c", (data[i*6+j] == 1)? 'X' : ' ');
+    } else {
+        printf("Irrecoverable errors found\n");
+        printf("  i  original fixed\n");
+        for (int i = 0; i < 20; i++) {
+            printf("%3d  [", i);
+            for (int j = 0; j < 6; j++) {
+                printf("%c", (original[i][j] == 1)? 'X' : ' ');
+            }
+            printf("]\n");
         }
-        printf("]\n");
     }
     printf("\n");
 #endif
+
+    return irrecoverable_errors;
 }
+
+void encode_reedsolomon_36_20_17(char* hex_data, char* fixed_parity)
+{
+    reed_solomon_36_20_17.encode(hex_data, fixed_parity);
+}
+

@@ -25,6 +25,7 @@
 #include "dmr_const.h"
 #include "provoice_const.h"
 //#include "git_ver.h"
+#include "p25p1_heuristics.h"
 
 int
 comp (const void *a, const void *b)
@@ -59,6 +60,7 @@ noCarrier (dsd_opts * opts, dsd_state * state)
   state->errs2 = 0;
   state->lasttg = 0;
   state->lastsrc = 0;
+  state->last_dibit = 0;
   state->lastp25type = 0;
   state->repeat = 0;
   state->nac = 0;
@@ -71,6 +73,7 @@ noCarrier (dsd_opts * opts, dsd_state * state)
       state->aout_gain = 25;
     }
   memset (state->aout_max_buf, 0, sizeof (float) * 200);
+
   state->aout_max_buf_p = state->aout_max_buf;
   state->aout_max_buf_idx = 0;
   sprintf (state->algid, "________");
@@ -148,6 +151,7 @@ initState (dsd_state * state)
   state->audio_out_buf_p = state->audio_out_buf + 100;
   state->audio_out_float_buf = malloc (sizeof (float) * 1000000);
   memset (state->audio_out_float_buf, 0, 100 * sizeof (float));
+  memset (state->src_list, 0, sizeof (long) * 50);
   state->audio_out_float_buf_p = state->audio_out_float_buf + 100;
   state->audio_out_idx = 0;
   state->audio_out_idx2 = 0;
@@ -225,6 +229,15 @@ initState (dsd_state * state)
   state->debug_audio_errors = 0;
   state->debug_header_errors = 0;
   state->debug_header_critical_errors = 0;
+
+#ifdef TRACE_DSD
+  state->debug_sample_index = 0;
+  state->debug_label_file = NULL;
+  state->debug_label_dibit_file = NULL;
+  state->debug_label_imbe_file = NULL;
+#endif
+  state->last_dibit = 0;
+  initialize_p25_heuristics(&state->p25_heuristics);
 }
 
 void
@@ -296,7 +309,7 @@ void puts_thread_scheduling(char *who)
 struct sched_param thread_param;
 pthread_attr_t thread_attr;
 int thread_policy = 0;
- 
+
 pthread_attr_init(&thread_attr);
 pthread_attr_getschedparam(&thread_attr, &thread_param);
 pthread_attr_getschedpolicy(&thread_attr, &thread_policy);
@@ -309,7 +322,7 @@ case SCHED_OTHER: printf("OTHER"); break;
 default: printf("UNKONW"); break;
 }
 printf("\n");
- 
+
 }
 
 int needQuit(dsd_state * state)
@@ -335,7 +348,7 @@ liveScanner (dsd_opts * opts, dsd_state * state)
 	long pid;
 	tid = syscall(SYS_gettid);
 	pid = pthread_self();
-	
+
 	printf("[ Pthread: %lu - PID: %ld ]\n",pid,tid);
 	puts_thread_scheduling("Thread");*/
 
@@ -360,11 +373,21 @@ liveScanner (dsd_opts * opts, dsd_state * state)
       state->lmid = (((state->min) - state->center) * 5 / 8) + state->center;
       while (state->synctype != -1)
         {
-	  if(state->exitflag) {
-		break;
-}
+	         if(state->exitflag) {
+		           break;
+             }
           processFrame (opts, state);
+
+#ifdef TRACE_DSD
+          state->debug_prefix = 'S';
+#endif
+
           state->synctype = getFrameSync (opts, state);
+
+#ifdef TRACE_DSD
+          state->debug_prefix = '\0';
+#endif
+
           // recalibrate center/umid/lmid
           state->center = ((state->max) + (state->min)) / 2;
           state->umid = (((state->max) - state->center) * 5 / 8) + state->center;
@@ -389,10 +412,30 @@ printf ("dsd_main.c: cleanupandexit().\n");
   printf("Total header errors: %i\n", state->debug_header_errors);
   printf("Total irrecoverable header errors: %i\n", state->debug_header_critical_errors);
 
-  printf ("dsd_main.c: cleanupandexit() Exiting.\n");
-  pthread_exit();
-printf ("dsd_main.c: should never see this.\n");
-  //exit (0);
+  //debug_print_heuristics(&(state->p25_heuristics));
+
+  printf("\n");
+  printf("+P25 BER estimate: %.2f%%\n", get_P25_BER_estimate(&state->p25_heuristics));
+  printf("-P25 BER estimate: %.2f%%\n", get_P25_BER_estimate(&state->inv_p25_heuristics));
+  printf("\n");
+
+#ifdef TRACE_DSD
+  if (state->debug_label_file != NULL) {
+      fclose(state->debug_label_file);
+      state->debug_label_file = NULL;
+  }
+  if(state->debug_label_dibit_file != NULL) {
+      fclose(state->debug_label_dibit_file);
+      state->debug_label_dibit_file = NULL;
+  }
+  if(state->debug_label_imbe_file != NULL) {
+      fclose(state->debug_label_imbe_file);
+      state->debug_label_imbe_file = NULL;
+  }
+#endif
+
+  printf ("Exiting.\n");
+  exit (0);
 }
 
 void
@@ -406,7 +449,6 @@ sigfun (int sig)
 int
 main (int argc, char **argv)
 {
-
   int c;
   extern char *optarg;
   extern int optind, opterr, optopt;

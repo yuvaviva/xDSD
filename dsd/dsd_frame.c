@@ -54,7 +54,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
   char nac[13];
   int level;
 
-  char status_0, status_1;
+  char status_0;
   char bch_code[63];
   int index_bch_code;
   unsigned char parity;
@@ -69,8 +69,8 @@ processFrame (dsd_opts * opts, dsd_state * state)
 
   if (state->rf_mod == 1)
     {
-      state->maxref = (state->max * 0.80);
-      state->minref = (state->min * 0.80);
+      state->maxref = (int)(state->max * 0.80F);
+      state->minref = (int)(state->min * 0.80F);
     }
   else
     {
@@ -254,13 +254,13 @@ processFrame (dsd_opts * opts, dsd_state * state)
           dibit = getDibit (opts, state);
 
           v = 1 & (dibit >> 1); // bit 1
-          nac[j] = v + 48;
+          nac[j] = v + '0';
           j++;
           bch_code[index_bch_code] = v;
           index_bch_code++;
 
           v = 1 & dibit;        // bit 0
-          nac[j] = v + 48;
+          nac[j] = v + '0';
           j++;
           bch_code[index_bch_code] = v;
           index_bch_code++;
@@ -271,7 +271,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
       for (i = 0; i < 2; i++)
         {
           dibit = getDibit (opts, state);
-          duid[i] = dibit + 48;
+          duid[i] = dibit + '0';
 
           bch_code[index_bch_code] = 1 & (dibit >> 1);  // bit 1
           index_bch_code++;
@@ -289,7 +289,9 @@ processFrame (dsd_opts * opts, dsd_state * state)
           bch_code[index_bch_code] = 1 & dibit;         // bit 0
           index_bch_code++;
         }
-      status_0 = getDibit (opts, state) + 48;
+      // Intermission: read the status dibit
+      status_0 = getDibit (opts, state) + '0';
+      // ... continue reading the BCH error correction data
       for (i = 0; i < 20; i++)
         {
           dibit = getDibit (opts, state);
@@ -325,7 +327,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
           //printf("NID error\n");
           duid[0] = 'E';
           duid[1] = 'E';
-          state->debug_header_critical_errors ++;
+          state->debug_header_critical_errors++;
       }
     }
 
@@ -445,10 +447,7 @@ processFrame (dsd_opts * opts, dsd_state * state)
       state->err_str[0] = 0;
       sprintf (state->fsubtype, " TDU          ");
 
-      // Now processing NID
-
-      skipDibit (opts, state, 14);    // 28 null bits
-      status_1 = getDibit (opts, state) + 48;
+      processTDU (opts, state);
     }
   else if (strcmp (duid, "13") == 0)
     {

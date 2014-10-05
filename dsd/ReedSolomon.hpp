@@ -1,5 +1,6 @@
-#ifndef __REED_SOLOMON_HPP__
-#define __REED_SOLOMON_HPP__
+
+#ifndef REEDSOLOMON_HPP_b1405fdab6374ba2a4e65e8d45ec3d80
+#define REEDSOLOMON_HPP_b1405fdab6374ba2a4e65e8d45ec3d80
 
 /**
  * Code taken and adapted from www.eccpage.com/rs.c
@@ -59,18 +60,20 @@
 #include <math.h>
 #include <stdio.h>
 
-// Constants to adapt the code to DSD/P25 needs
-
-#define mm  6           /* RS code over GF(2**4) - change to suit */
-#define nn  63          /* nn=2**mm -1   length of codeword */
-#define tt  8           /* number of errors that can be corrected */
-#define kk  47          /* kk = nn-2*tt  */
-// distance = nn-kk+1 = 63-47+1 = 17
-
-class ReedSolomon_63_47_17
+template <int TT>
+class ReedSolomon_63
 {
 private:
-    int alpha_to[nn + 1], index_of[nn + 1], gg[nn - kk + 1];
+    static const int MM = 6;             /* RS code over GF(2**mm) */
+    static const int NN = 63;            /* nn=2**mm -1   length of codeword */
+    //int tt;             /* number of errors that can be corrected */
+    //int kk;             /* kk = nn-2*tt  */
+    static const int KK = NN-2*TT;
+    // distance = nn-kk+1 = 2*tt+1
+
+    int* alpha_to;
+    int* index_of;
+    int* gg;
 
     void generate_gf(int* generator_polinomial)
     /* generate GF(2**mm) from the irreducible polynomial p(X) in pp[0]..pp[mm]
@@ -82,19 +85,19 @@ private:
         register int i, mask;
 
         mask = 1;
-        alpha_to[mm] = 0;
-        for (i = 0; i < mm; i++) {
+        alpha_to[MM] = 0;
+        for (i = 0; i < MM; i++) {
             alpha_to[i] = mask;
             index_of[alpha_to[i]] = i;
             if (generator_polinomial[i] != 0)
-                alpha_to[mm] ^= mask;
+                alpha_to[MM] ^= mask;
             mask <<= 1;
         }
-        index_of[alpha_to[mm]] = mm;
+        index_of[alpha_to[MM]] = MM;
         mask >>= 1;
-        for (i = mm + 1; i < nn; i++) {
+        for (i = MM + 1; i < NN; i++) {
             if (alpha_to[i - 1] >= mask)
-                alpha_to[i] = alpha_to[mm] ^ ((alpha_to[i - 1] ^ mask) << 1);
+                alpha_to[i] = alpha_to[MM] ^ ((alpha_to[i - 1] ^ mask) << 1);
             else
                 alpha_to[i] = alpha_to[i - 1] << 1;
             index_of[alpha_to[i]] = i;
@@ -111,31 +114,43 @@ private:
 
         gg[0] = 2; /* primitive element alpha = 2  for GF(2**mm)  */
         gg[1] = 1; /* g(x) = (X+alpha) initially */
-        for (i = 2; i <= nn - kk; i++) {
+        for (i = 2; i <= NN - KK; i++) {
             gg[i] = 1;
             for (j = i - 1; j > 0; j--)
                 if (gg[j] != 0)
-                    gg[j] = gg[j - 1] ^ alpha_to[(index_of[gg[j]] + i) % nn];
+                    gg[j] = gg[j - 1] ^ alpha_to[(index_of[gg[j]] + i) % NN];
                 else
                     gg[j] = gg[j - 1];
-            gg[0] = alpha_to[(index_of[gg[0]] + i) % nn]; /* gg[0] can never be zero */
+            gg[0] = alpha_to[(index_of[gg[0]] + i) % NN]; /* gg[0] can never be zero */
         }
         /* convert gg[] to index form for quicker encoding */
-        for (i = 0; i <= nn - kk; i++)
+        for (i = 0; i <= NN - KK; i++)
             gg[i] = index_of[gg[i]];
     }
 
 public:
-    ReedSolomon_63_47_17()
+    ReedSolomon_63()
     {
+        alpha_to = new int[NN + 1];
+        index_of = new int[NN + 1];
+        gg       = new int[NN - KK + 1];
+
         // Polynom used in P25 is alpha**6+alpha+1
-        int generator_polinomial[mm + 1] = { 1, 1, 0, 0, 0, 0, 1 }; /* specify irreducible polynomial coeffts */
+        int generator_polinomial[] = { 1, 1, 0, 0, 0, 0, 1 }; /* specify irreducible polynomial coeffts */
+
         generate_gf(generator_polinomial);
 
         gen_poly();
     }
 
-    void encode(int* data, int* bb)
+    virtual ~ReedSolomon_63()
+    {
+        delete[] gg;
+        delete[] index_of;
+        delete[] alpha_to;
+    }
+
+    void encode(const int* data, int* bb)
     /* take the string of symbols in data[i], i=0..(k-1) and encode systematically
      to produce 2*tt parity symbols in bb[0]..bb[2*tt-1]
      data[] is input and bb[] is output in polynomial form.
@@ -146,26 +161,26 @@ public:
         register int i, j;
         int feedback;
 
-        for (i = 0; i < nn - kk; i++)
+        for (i = 0; i < NN - KK; i++)
             bb[i] = 0;
-        for (i = kk - 1; i >= 0; i--) {
-            feedback = index_of[data[i] ^ bb[nn - kk - 1]];
+        for (i = KK - 1; i >= 0; i--) {
+            feedback = index_of[data[i] ^ bb[NN - KK - 1]];
             if (feedback != -1) {
-                for (j = nn - kk - 1; j > 0; j--)
+                for (j = NN - KK - 1; j > 0; j--)
                     if (gg[j] != -1)
-                        bb[j] = bb[j - 1] ^ alpha_to[(gg[j] + feedback) % nn];
+                        bb[j] = bb[j - 1] ^ alpha_to[(gg[j] + feedback) % NN];
                     else
                         bb[j] = bb[j - 1];
-                bb[0] = alpha_to[(gg[0] + feedback) % nn];
+                bb[0] = alpha_to[(gg[0] + feedback) % NN];
             } else {
-                for (j = nn - kk - 1; j > 0; j--)
+                for (j = NN - KK - 1; j > 0; j--)
                     bb[j] = bb[j - 1];
                 bb[0] = 0;
             }
         }
     }
 
-    void decode(const int* input, int* recd)
+    int decode(const int* input, int* recd)
     /* assume we have received bits grouped into mm-bit symbols in recd[i],
      i=0..(nn-1),  and recd[i] is polynomial form.
      We first compute the 2*tt syndromes by substituting alpha**i into rec(X) and
@@ -186,20 +201,22 @@ public:
      can be returned as error flags to the calling routine if desired.   */
     {
         register int i, j, u, q;
-        int elp[nn - kk + 2][nn - kk], d[nn - kk + 2], l[nn - kk + 2], u_lu[nn - kk
-                + 2], s[nn - kk + 1];
-        int count = 0, syn_error = 0, root[tt], loc[tt], z[tt + 1], err[nn], reg[tt
+        int elp[NN - KK + 2][NN - KK], d[NN - KK + 2], l[NN - KK + 2], u_lu[NN - KK
+                + 2], s[NN - KK + 1];
+        int count = 0, syn_error = 0, root[TT], loc[TT], z[TT + 1], err[NN], reg[TT
                 + 1];
 
-        for (int i = 0; i < nn; i++)
+        int irrecoverable_error = 0;
+
+        for (int i = 0; i < NN; i++)
             recd[i] = index_of[input[i]]; /* put recd[i] into index form (ie as powers of alpha) */
 
         /* first form the syndromes */
-        for (i = 1; i <= nn - kk; i++) {
+        for (i = 1; i <= NN - KK; i++) {
             s[i] = 0;
-            for (j = 0; j < nn; j++)
+            for (j = 0; j < NN; j++)
                 if (recd[j] != -1)
-                    s[i] ^= alpha_to[(recd[j] + i * j) % nn]; /* recd[j] in index form */
+                    s[i] ^= alpha_to[(recd[j] + i * j) % NN]; /* recd[j] in index form */
             /* convert syndrome from polynomial form to index form  */
             if (s[i] != 0)
                 syn_error = 1; /* set flag if non-zero syndrome => error */
@@ -220,7 +237,7 @@ public:
             d[1] = s[1]; /* index form */
             elp[0][0] = 0; /* index form */
             elp[1][0] = 1; /* polynomial form */
-            for (i = 1; i < nn - kk; i++) {
+            for (i = 1; i < NN - KK; i++) {
                 elp[0][i] = -1; /* index form */
                 elp[1][i] = 0; /* polynomial form */
             }
@@ -262,12 +279,12 @@ public:
                         l[u + 1] = l[q] + u - q;
 
                     /* form new elp(x) */
-                    for (i = 0; i < nn - kk; i++)
+                    for (i = 0; i < NN - KK; i++)
                         elp[u + 1][i] = 0;
                     for (i = 0; i <= l[q]; i++)
                         if (elp[q][i] != -1)
-                            elp[u + 1][i + u - q] = alpha_to[(d[u] + nn - d[q]
-                                    + elp[q][i]) % nn];
+                            elp[u + 1][i + u - q] = alpha_to[(d[u] + NN - d[q]
+                                    + elp[q][i]) % NN];
                     for (i = 0; i <= l[u]; i++) {
                         elp[u + 1][i] ^= elp[u][i];
                         elp[u][i] = index_of[elp[u][i]]; /*convert old elp value to index*/
@@ -276,7 +293,7 @@ public:
                 u_lu[u + 1] = u - l[u + 1];
 
                 /* form (u+1)th discrepancy */
-                if (u < nn - kk) /* no discrepancy computed on last iteration */
+                if (u < NN - KK) /* no discrepancy computed on last iteration */
                 {
                     if (s[u + 1] != -1)
                         d[u + 1] = alpha_to[s[u + 1]];
@@ -285,13 +302,13 @@ public:
                     for (i = 1; i <= l[u + 1]; i++)
                         if ((s[u + 1 - i] != -1) && (elp[u + 1][i] != 0))
                             d[u + 1] ^= alpha_to[(s[u + 1 - i]
-                                    + index_of[elp[u + 1][i]]) % nn];
+                                    + index_of[elp[u + 1][i]]) % NN];
                     d[u + 1] = index_of[d[u + 1]]; /* put d[u+1] into index form */
                 }
-            } while ((u < nn - kk) && (l[u + 1] <= tt));
+            } while ((u < NN - KK) && (l[u + 1] <= TT));
 
             u++;
-            if (l[u] <= tt) /* can correct error */
+            if (l[u] <= TT) /* can correct error */
             {
                 /* put elp into index form */
                 for (i = 0; i <= l[u]; i++)
@@ -301,20 +318,21 @@ public:
                 for (i = 1; i <= l[u]; i++)
                     reg[i] = elp[u][i];
                 count = 0;
-                for (i = 1; i <= nn; i++) {
+                for (i = 1; i <= NN; i++) {
                     q = 1;
                     for (j = 1; j <= l[u]; j++)
                         if (reg[j] != -1) {
-                            reg[j] = (reg[j] + j) % nn;
+                            reg[j] = (reg[j] + j) % NN;
                             q ^= alpha_to[reg[j]];
                         };
                     if (!q) /* store root and error location number indices */
                     {
                         root[count] = i;
-                        loc[count] = nn - i;
+                        loc[count] = NN - i;
                         count++;
                     };
                 };
+
                 if (count == l[u]) /* no. roots = degree of elp hence <= tt errors */
                 {
                     /* form polynomial z(x) */
@@ -330,12 +348,12 @@ public:
                             z[i] = 0;
                         for (j = 1; j < i; j++)
                             if ((s[j] != -1) && (elp[u][i - j] != -1))
-                                z[i] ^= alpha_to[(elp[u][i - j] + s[j]) % nn];
+                                z[i] ^= alpha_to[(elp[u][i - j] + s[j]) % NN];
                         z[i] = index_of[z[i]]; /* put into index form */
                     };
 
                     /* evaluate errors at locations given by error location numbers loc[i] */
-                    for (i = 0; i < nn; i++) {
+                    for (i = 0; i < NN; i++) {
                         err[i] = 0;
                         if (recd[i] != -1) /* convert recd[] to polynomial form */
                             recd[i] = alpha_to[recd[i]];
@@ -347,51 +365,51 @@ public:
                         err[loc[i]] = 1; /* accounts for z[0] */
                         for (j = 1; j <= l[u]; j++)
                             if (z[j] != -1)
-                                err[loc[i]] ^= alpha_to[(z[j] + j * root[i]) % nn];
+                                err[loc[i]] ^= alpha_to[(z[j] + j * root[i]) % NN];
                         if (err[loc[i]] != 0) {
                             err[loc[i]] = index_of[err[loc[i]]];
                             q = 0; /* form denominator of error term */
                             for (j = 0; j < l[u]; j++)
                                 if (j != i)
                                     q += index_of[1
-                                            ^ alpha_to[(loc[j] + root[i]) % nn]];
-                            q = q % nn;
-                            err[loc[i]] = alpha_to[(err[loc[i]] - q + nn) % nn];
+                                            ^ alpha_to[(loc[j] + root[i]) % NN]];
+                            q = q % NN;
+                            err[loc[i]] = alpha_to[(err[loc[i]] - q + NN) % NN];
                             recd[loc[i]] ^= err[loc[i]]; /*recd[i] must be in polynomial form */
                         }
                     }
-                } else
+                } else {
                     /* no. roots != degree of elp => >tt errors and cannot solve */
-                    for (i = 0; i < nn; i++) /* could return error flag if desired */
-                        if (recd[i] != -1) /* convert recd[] to polynomial form */
-                            recd[i] = alpha_to[recd[i]];
-                        else
-                            recd[i] = 0; /* just output received codeword as is */
-            } else
-                /* elp has degree has degree >tt hence cannot solve */
-                for (i = 0; i < nn; i++) /* could return error flag if desired */
-                    if (recd[i] != -1) /* convert recd[] to polynomial form */
-                        recd[i] = alpha_to[recd[i]];
-                    else
-                        recd[i] = 0; /* just output received codeword as is */
-        } else
+                    irrecoverable_error = 1;
+                }
+
+            } else {
+                /* elp has degree >tt hence cannot solve */
+                irrecoverable_error = 1;
+            }
+
+        } else {
             /* no non-zero syndromes => no errors: output received codeword */
-            for (i = 0; i < nn; i++)
+            for (i = 0; i < NN; i++)
                 if (recd[i] != -1) /* convert recd[] to polynomial form */
                     recd[i] = alpha_to[recd[i]];
                 else
                     recd[i] = 0;
-    }
-};
+        }
 
-/**
- * Convenience class that does a Reed-Solomon (63,20,17) error correction adapting input and output to
- * the DSD data format: hex words packed as char arrays.
- */
-class DSDReedSolomon_63_20_17 : public ReedSolomon_63_47_17
-{
-private:
-    int bin_to_hex(char* input)
+        if (irrecoverable_error) {
+            for (i = 0; i < NN; i++) /* could return error flag if desired */
+                if (recd[i] != -1) /* convert recd[] to polynomial form */
+                    recd[i] = alpha_to[recd[i]];
+                else
+                    recd[i] = 0; /* just output received codeword as is */
+        }
+
+        return irrecoverable_error;
+    }
+
+protected:
+    int bin_to_hex(const char* input)
     {
         int output = ((input[0] != 0)? 32 : 0) |
                      ((input[1] != 0)? 16 : 0) |
@@ -412,20 +430,35 @@ private:
         output[4] = ((input &  2) != 0)?  1 : 0;
         output[5] = ((input &  1) != 0)?  1 : 0;
     }
+};
 
+/**
+ * Convenience class that does a Reed-Solomon (36,20,17) error correction adapting input and output to
+ * the DSD data format: hex words packed as char arrays.
+ */
+class DSDReedSolomon_36_20_17 : public ReedSolomon_63<8>
+{
 public:
+    // tt = (dd-1)/2
+    // dd = 17 --> tt = 8
+    DSDReedSolomon_36_20_17() : ReedSolomon_63<8>()
+    {
+        // Does nothing
+    }
+
     /**
      * Does a Reed-Solomon decode adapting the input and output to the expected DSD data format.
      * \param hex_data Data packed bits, originally a char[20][6], so containing 20 hex works, each char
-     *                 is a bit.
+     *                 is a bit. Bits are corrected in place.
      * \param hex_parity Parity packed bits, originally a char[16][6], 16 hex words.
+     * \return 1 if irrecoverable errors have been detected, 0 otherwise.
      */
-    void decode(char* hex_data, char* hex_parity)
+    int decode(char* hex_data, const char* hex_parity)
     {
         int input[63];
         int output[63];
 
-        // First put the parity data, 16
+        // First put the parity data, 16 hex words
         for(unsigned int i=0; i<16; i++) {
             input[i] = bin_to_hex(hex_parity + i*6);
         }
@@ -436,19 +469,202 @@ public:
         }
 
         // Fill up with zeros to complete the 47 expected hex words of data
-        for(unsigned int i=36; i<63; i++) {
+        for(unsigned int i=16+20; i<63; i++) {
             input[i] = 0;
         }
 
         // Now we can call decode on the base class
-        ReedSolomon_63_47_17::decode(input, output);
+        int irrecoverable_errors = ReedSolomon_63<8>::decode(input, output);
 
         // Convert it back to binary and put it into hex_data. If decode failed we should have
         // the input unchanged.
         for(unsigned int i=16; i<16+20; i++) {
             hex_to_bin(output[i], hex_data + (i-16)*6);
         }
+
+        return irrecoverable_errors;
+    }
+
+    void encode(const char* hex_data, char* out_hex_parity)
+    {
+        int input[47];
+        int output[63];
+
+        // Put the 20 hex words of data
+        for(unsigned int i=0; i<20; i++) {
+            input[i] = bin_to_hex(hex_data + i*6);
+        }
+
+        // Fill up with zeros to complete the 47 expected hex words of data
+        for(unsigned int i=20; i<47; i++) {
+            input[i] = 0;
+        }
+
+        // Now we can call encode on the base class
+        ReedSolomon_63<8>::encode(input, output);
+
+        // Convert it back to binary form and put it into the parity
+        for(unsigned int i=0; i<16; i++) {
+            hex_to_bin(output[i], out_hex_parity + i*6);
+        }
     }
 };
 
-#endif // __REED_SOLOMON_HPP__
+/**
+ * Convenience class that does a Reed-Solomon (24,12,13) error correction adapting input and output to
+ * the DSD data format: hex words packed as char arrays.
+ */
+class DSDReedSolomon_24_12_13 : public ReedSolomon_63<6>
+{
+public:
+    // tt = (dd-1)/2
+    // dd = 13 --> tt = 6
+    DSDReedSolomon_24_12_13() : ReedSolomon_63<6>()
+    {
+        // Does nothing
+    }
+
+    /**
+     * Does a Reed-Solomon decode adapting the input and output to the expected DSD data format.
+     * \param hex_data Data packed bits, originally a char[12][6], so containing 12 hex works, each char
+     *                 is a bit. Bits are corrected in place.
+     * \param hex_parity Parity packed bits, originally a char[12][6], 12 hex words.
+     * \return 1 if irrecoverable errors have been detected, 0 otherwise.
+     */
+    int decode(char* hex_data, const char* hex_parity)
+    {
+        int input[63];
+        int output[63];
+
+        // First put the parity data, 12 hex words
+        for(unsigned int i=0; i<12; i++) {
+            input[i] = bin_to_hex(hex_parity + i*6);
+        }
+
+        // Then the 12 hex words of data
+        for(unsigned int i=12; i<12+12; i++) {
+            input[i] = bin_to_hex(hex_data + (i-12)*6);
+        }
+
+        // Fill up with zeros to complete the 51 expected hex words of data
+        for(unsigned int i=12+12; i<63; i++) {
+            input[i] = 0;
+        }
+
+        // Now we can call decode on the base class
+        int irrecoverable_errors = ReedSolomon_63<6>::decode(input, output);
+
+        // Convert it back to binary and put it into hex_data. If decode failed we should have
+        // the input unchanged.
+        for(unsigned int i=12; i<12+12; i++) {
+            hex_to_bin(output[i], hex_data + (i-12)*6);
+        }
+
+        return irrecoverable_errors;
+    }
+
+    void encode(const char* hex_data, char* out_hex_parity)
+    {
+        int input[51];
+        int output[63];
+
+        // Put the 12 hex words of data
+        for(unsigned int i=0; i<12; i++) {
+            input[i] = bin_to_hex(hex_data + i*6);
+        }
+
+        // Fill up with zeros to complete the 51 expected hex words of data
+        for(unsigned int i=12; i<51; i++) {
+            input[i] = 0;
+        }
+
+        // Now we can call encode on the base class
+        ReedSolomon_63<6>::encode(input, output);
+
+        // Convert it back to binary form and put it into the parity
+        for(unsigned int i=0; i<12; i++) {
+            hex_to_bin(output[i], out_hex_parity + i*6);
+        }
+    }
+
+};
+
+/**
+ * Convenience class that does a Reed-Solomon (24,16,9) error correction adapting input and output to
+ * the DSD data format: hex words packed as char arrays.
+ */
+class DSDReedSolomon_24_16_9 : public ReedSolomon_63<4>
+{
+public:
+    // tt = (dd-1)/2
+    // dd = 9 --> tt = 4
+    DSDReedSolomon_24_16_9() : ReedSolomon_63<4>()
+    {
+        // Does nothing
+    }
+
+    /**
+     * Does a Reed-Solomon decode adapting the input and output to the expected DSD data format.
+     * \param hex_data Data packed bits, originally a char[16][6], so containing 16 hex works, each char
+     *                 is a bit. Bits are corrected in place.
+     * \param hex_parity Parity packed bits, originally a char[8][6], 8 hex words.
+     * \return 1 if irrecoverable errors have been detected, 0 otherwise.
+     */
+    int decode(char* hex_data, const char* hex_parity)
+    {
+        int input[63];
+        int output[63];
+
+        // First put the parity data, 8 hex words
+        for(unsigned int i=0; i<8; i++) {
+            input[i] = bin_to_hex(hex_parity + i*6);
+        }
+
+        // Then the 16 hex words of data
+        for(unsigned int i=8; i<8+16; i++) {
+            input[i] = bin_to_hex(hex_data + (i-8)*6);
+        }
+
+        // Fill up with zeros to complete the 55 expected hex words of data
+        for(unsigned int i=8+16; i<63; i++) {
+            input[i] = 0;
+        }
+
+        // Now we can call decode on the base class
+        int irrecoverable_errors = ReedSolomon_63<4>::decode(input, output);
+
+        // Convert it back to binary and put it into hex_data. If decode failed we should have
+        // the input unchanged.
+        for(unsigned int i=8; i<8+16; i++) {
+            hex_to_bin(output[i], hex_data + (i-8)*6);
+        }
+
+        return irrecoverable_errors;
+    }
+
+    void encode(const char* hex_data, char* out_hex_parity)
+    {
+        int input[55];
+        int output[63];
+
+        // Put the 16 hex words of data
+        for(unsigned int i=0; i<16; i++) {
+            input[i] = bin_to_hex(hex_data + i*6);
+        }
+
+        // Fill up with zeros to complete the 55 expected hex words of data
+        for(unsigned int i=16; i<55; i++) {
+            input[i] = 0;
+        }
+
+        // Now we can call encode on the base class
+        ReedSolomon_63<4>::encode(input, output);
+
+        // Convert it back to binary form and put it into the parity
+        for(unsigned int i=0; i<8; i++) {
+            hex_to_bin(output[i], out_hex_parity + i*6);
+        }
+    }
+};
+
+#endif // REEDSOLOMON_HPP_b1405fdab6374ba2a4e65e8d45ec3d80
