@@ -41,7 +41,7 @@ Build instructions:
     sudo ldconfig
 
 You may need to install dependcies:
-    sudo apt-get install libsndfile-dev itpp
+    sudo apt-get install libsndfile-dev libitpp-dev
 
 
 After running the above commands, "DSD Block" should appear under the
