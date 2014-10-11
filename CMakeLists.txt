@@ -140,7 +140,7 @@ CONFIGURE_FILE(
 @ONLY)
 
 INSTALL(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/libhackrf.pc
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/libdsd.pc
     DESTINATION lib/pkgconfig
 )
 
