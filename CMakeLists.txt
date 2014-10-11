@@ -23,6 +23,7 @@
 ########################################################################
 cmake_minimum_required(VERSION 2.6)
 project(gr-dsd-block CXX C)
+set(PACKAGE libdsd)
 enable_testing()
 
 #select the release build type by default to get optimization flags
@@ -108,8 +109,41 @@ link_directories(
 )
 
 # Set component parameters
-set(GR_DSD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE INTERNAL "" FORCE)
-set(GR_DSD_SWIG_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/swig CACHE INTERNAL "" FORCE)
+set(LIB_DSD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE INTERNAL "" FORCE)
+#set(GR_DSD_SWIG_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/swig CACHE INTERNAL "" FORCE)
+
+########################################################################
+# Create Pkg Config File
+########################################################################
+#FOREACH(inc ${LIBUSB_INCLUDE_DIR})
+#    LIST(APPEND HACKRF_PC_CFLAGS "-I${inc}")
+#ENDFOREACH(inc)
+
+# use space-separation format for the pc file
+#STRING(REPLACE ";" " " HACKRF_PC_CFLAGS "${HACKRF_PC_CFLAGS}")
+#STRING(REPLACE ";" " " HACKRF_PC_LIBS "${HACKRF_PC_LIBS}")
+
+# unset these vars to avoid hard-coded paths to cross environment
+#IF(CMAKE_CROSSCOMPILING)
+#    UNSET(HACKRF_PC_CFLAGS)
+#    UNSET(HACKRF_PC_LIBS)
+#ENDIF(CMAKE_CROSSCOMPILING)
+
+set(prefix ${CMAKE_INSTALL_PREFIX})
+set(exec_prefix \${prefix})
+set(libdir \${exec_prefix}/lib)
+set(includedir \${prefix}/include)
+
+CONFIGURE_FILE(
+    ${CMAKE_CURRENT_SOURCE_DIR}/libdsd.pc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/libdsd.pc
+@ONLY)
+
+INSTALL(
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/libhackrf.pc
+    DESTINATION lib/pkgconfig
+)
+
 
 ########################################################################
 # Create uninstall target
