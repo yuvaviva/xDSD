@@ -40,6 +40,10 @@ Build instructions:
     sudo make install
     sudo ldconfig
 
+You may need to install dependcies:
+    sudo apt-get install libsndfile-dev libitpp-dev
+
+
 After running the above commands, "DSD Block" should appear under the
 "DSD" category in GNU Radio Companion, and "block_ff" will be available
 in the "dsd" Python package.
