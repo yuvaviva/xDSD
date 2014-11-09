@@ -36,6 +36,7 @@
 #if defined(BSD) && !defined(__APPLE__)
 #include <sys/soundcard.h>
 #endif
+#include <pthread.h>
 #include <math.h>
 #include <mbelib.h>
 #include <sndfile.h>
