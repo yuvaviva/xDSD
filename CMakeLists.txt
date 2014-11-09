@@ -49,6 +49,11 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 if(UNIX AND EXISTS "/usr/lib64")
     list(APPEND BOOST_LIBRARYDIR "/usr/lib64") #fedora 64-bit fix
 endif(UNIX AND EXISTS "/usr/lib64")
+
+SET(BOOST_REQUIRED_COMPONENTS
+    thread
+    system
+)
 set(Boost_ADDITIONAL_VERSIONS
     "1.35.0" "1.35" "1.36.0" "1.36" "1.37.0" "1.37" "1.38.0" "1.38" "1.39.0" "1.39"
     "1.40.0" "1.40" "1.41.0" "1.41" "1.42.0" "1.42" "1.43.0" "1.43" "1.44.0" "1.44"
@@ -58,7 +63,7 @@ set(Boost_ADDITIONAL_VERSIONS
     "1.60.0" "1.60" "1.61.0" "1.61" "1.62.0" "1.62" "1.63.0" "1.63" "1.64.0" "1.64"
     "1.65.0" "1.65" "1.66.0" "1.66" "1.67.0" "1.67" "1.68.0" "1.68" "1.69.0" "1.69"
 )
-find_package(Boost "1.35")
+find_package(Boost COMPONENTS ${BOOST_REQUIRED_COMPONENTS})
 
 if(NOT Boost_FOUND)
     message(FATAL_ERROR "Boost required to compile gr-dsd")
@@ -85,11 +90,26 @@ set(GRC_BLOCKS_DIR      ${GR_PKG_DATA_DIR}/grc/blocks)
 # Find gnuradio build dependencies
 ########################################################################
 
-find_package(GnuradioRuntime)
+find_package(CppUnit)
+
+########################################################################
+# Find gnuradio build dependencies
+########################################################################
+
+# Search for GNU Radio and its components and versions. Add any
+# components required to the list of GR_REQUIRED_COMPONENTS (in all
+# caps such as FILTER or FFT) and change the version to the minimum
+# API compatible version required.
+set(GR_REQUIRED_COMPONENTS RUNTIME PMT AUDIO BLOCKS FILTER DIGITAL ANALOG)
+find_package(Gnuradio "3.7.2" REQUIRED)
+
 
 
 if(NOT GNURADIO_RUNTIME_FOUND)
     message(FATAL_ERROR "GnuRadio Runtime required to compile gr-dsd")
+endif()
+if(NOT CPPUNIT_FOUND)
+    message(FATAL_ERROR "CppUnit required to compile gr-dsd")
 endif()
 
 ########################################################################
@@ -100,11 +120,13 @@ include_directories(
     ${CMAKE_SOURCE_DIR}/dsd
     ${CMAKE_SOURCE_DIR}/mbelib
     ${Boost_INCLUDE_DIRS}
+    ${CPPUNIT_INCLUDE_DIRS}
     ${GNURADIO_RUNTIME_INCLUDE_DIRS}
 )
 
 link_directories(
     ${Boost_LIBRARY_DIRS}
+    ${CPPUNIT_LIBRARY_DIRS}
     ${GNURADIO_RUNTIME_LIBRARY_DIRS}
 )
 
