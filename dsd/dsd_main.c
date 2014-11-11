@@ -41,6 +41,7 @@ comp (const void *a, const void *b)
 void
 noCarrier (dsd_opts * opts, dsd_state * state)
 {
+  printf("Carrier Reset\n");
   state->dibit_buf_p = state->dibit_buf + 200;
   memset (state->dibit_buf, 0, sizeof (int) * 200);
   if (opts->mbe_out_f != NULL)
