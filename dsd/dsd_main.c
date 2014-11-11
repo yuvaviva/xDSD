@@ -79,7 +79,6 @@ noCarrier (dsd_opts * opts, dsd_state * state)
   sprintf (state->algid, "________");
   sprintf (state->keyid, "________________");
   mbe_initMbeParms (state->cur_mp, state->prev_mp, state->prev_mp_enhanced);
-  printf("No CArrier!\n");
 }
 
 void
