@@ -93,10 +93,11 @@ void dsd_block_ff::reset_state(){
   state->debug_header_errors = 0;
   state->debug_header_critical_errors = 0;
   state->symbolcnt = 0;
+  /*
   printf("\n");
   printf("+P25 BER estimate: %.2f%%\n", get_P25_BER_estimate(&state->p25_heuristics));
   printf("-P25 BER estimate: %.2f%%\n", get_P25_BER_estimate(&state->inv_p25_heuristics));
-  printf("\n");
+  printf("\n");*/
   initialize_p25_heuristics(&state->p25_heuristics);
 }
 
@@ -448,11 +449,11 @@ dsd_block_ff::general_work (int noutput_items,
   }
 
 
-/*
+
  if (params.state.output_num_samples > 0) {
 	printf("[%lu] \tInputs: %d \tReq Outputs: %d \tOutputs: %d \t Buffer Offset: %d\n",long(pthread_self()),ninput_items[0],noutput_items, params.state.output_num_samples, params.state.output_offset);
 
-}*/
+}
 
 if (empty_frames) {
 
