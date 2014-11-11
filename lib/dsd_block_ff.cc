@@ -449,10 +449,10 @@ dsd_block_ff::general_work (int noutput_items,
 
 
 
- if (params.state.output_num_samples > 0) {
+ //if (params.state.output_num_samples > 0) {
 	printf("[%lu] \tInputs: %d \tReq Outputs: %d \tOutputs: %d \t Buffer Offset: %d\n",long(pthread_self()),ninput_items[0],noutput_items, params.state.output_num_samples, params.state.output_offset);
 
-}
+//}
 
 if (empty_frames) {
 
