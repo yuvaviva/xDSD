@@ -70,7 +70,7 @@
  *
  * The following define enables taking the previous dibit into account for C4FM signals. Comment out
  * to disable.
- */
+ */ 
 
 #define USE_PREVIOUS_DIBIT
 
