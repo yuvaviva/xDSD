@@ -93,8 +93,8 @@ void dsd_block_ff::reset_state(){
   state->debug_header_errors = 0;
   state->debug_header_critical_errors = 0;
   state->symbolcnt = 0;
-  printf("Reseting num: %d param: %u \t state: %u \n",params.num, &params, state);
   /*
+  printf("Reseting num: %d param: %u \t state: %u \n",params.num, &params, state);
   printf("\n");
   printf("+P25 BER estimate: %.2f%%\n", get_P25_BER_estimate(&state->p25_heuristics));
   printf("-P25 BER estimate: %.2f%%\n", get_P25_BER_estimate(&state->inv_p25_heuristics));
