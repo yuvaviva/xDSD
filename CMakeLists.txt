@@ -132,7 +132,7 @@ link_directories(
 
 # Set component parameters
 set(LIB_DSD_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include CACHE INTERNAL "" FORCE)
-#set(GR_DSD_SWIG_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/swig CACHE INTERNAL "" FORCE)
+set(GR_DSD_SWIG_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/swig CACHE INTERNAL "" FORCE)
 
 ########################################################################
 # Create Pkg Config File
