@@ -4,7 +4,7 @@
   <key>dsd_block_ff</key>
   <category>DSD</category>
   <import>import dsd</import>
-  <make>dsd.block_ff($frame,$mod,$uvquality,$verbosity,$errorbars)</make>
+  <make>dsd.block_ff($frame,$mod,$uvquality,$verbosity,$errorbars,$empty,$num)</make>
   <param>
     <name>Frame type</name>
     <key>frame</key>
@@ -105,7 +105,26 @@
       <key>3</key>
     </option>
   </param>
-
+  <param>
+    <name>Output Empty Frames</name>
+    <key>empty</key>
+    <value>False</value>
+    <type>bool</type>
+    <option>
+      <name>No</name>
+      <key>False</key>
+    </option>
+    <option>
+      <name>Yes</name>
+      <key>True</key>
+    </option>
+  </param>
+  <param>
+    <name>Block Num</name>
+    <key>num</key>
+    <value>0</value>
+    <type>int</type>
+  </param>
   <sink>
     <name>in</name>
     <type>float</type>

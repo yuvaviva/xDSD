@@ -14,5 +14,8 @@ install_manifest.txt
 /swig/*.tag
 /swig/*.cxx
 /swig/*_doc*
+/swig/dsd_swig_swig*
 get_swig_deps.py
 python_compile_helper.py
+*.dylib
+*.pc
