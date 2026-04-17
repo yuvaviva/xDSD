@@ -1,0 +1,53 @@
+{
+  "ingest": {
+    "folder": "/path/to/hackrf/captures",
+    "sample_rate": 10000000.0,
+    "center_hz": 450000000.0,
+    "format": "hackrf_int8",
+    "block_size": 1048576
+  },
+  "detect": {
+    "nperseg": 8192,
+    "nav": 32,
+    "cfar_guard": 4,
+    "cfar_train": 32,
+    "cfar_pfa": 0.0001,
+    "min_bw_hz": 5000.0,
+    "max_bw_hz": 40000.0,
+    "min_persist_frames": 2,
+    "max_absent_frames": 2
+  },
+  "classify": {
+    "snippet_samples": 32768,
+    "confidence_threshold": 0.55
+  },
+  "decode": {
+    "enable_p25": true,
+    "enable_dmr": true,
+    "enable_nxdn": true,
+    "enable_dstar": true,
+    "enable_tetra": false,
+    "tetra_rx_binary": "tetra-rx",
+    "enable_dpmr": false,
+    "workers": 2
+  },
+  "crypto": {
+    "detect": true,
+    "enable_key_recovery": false,
+    "attacks": {
+      "p25_adp": false,
+      "p25_des_known_key": false,
+      "p25_des_key_hex": null,
+      "dmr_bp": false,
+      "tetra_tea1": false,
+      "iv_reuse": true,
+      "max_cpu_seconds_per_event": 30.0
+    }
+  },
+  "output": {
+    "out_dir": "wideband_out",
+    "write_wav": true,
+    "write_baseband_sigmf": false,
+    "write_spectrogram_png": true
+  }
+}

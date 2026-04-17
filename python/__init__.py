@@ -31,9 +31,9 @@ try:
     from dl import RTLD_GLOBAL as _RTLD_GLOBAL
 except ImportError:
     try:
-	from DLFCN import RTLD_GLOBAL as _RTLD_GLOBAL
+        from DLFCN import RTLD_GLOBAL as _RTLD_GLOBAL
     except ImportError:
-	pass
+        pass
 
 if _RTLD_GLOBAL != 0:
     _dlopenflags = sys.getdlopenflags()
@@ -41,8 +41,13 @@ if _RTLD_GLOBAL != 0:
 # ----------------------------------------------------------------
 
 
-# import swig generated symbols into the dsd namespace
-from dsd_swig import *
+# import swig generated symbols into the dsd namespace. The compiled swig
+# module may not be present in pure-Python sub-module test environments; fail
+# soft so that `dsd.wideband` can still be imported without the GR block.
+try:
+    from dsd_swig import *
+except ImportError:
+    pass
 
 # import any pure python here
 #

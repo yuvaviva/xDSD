@@ -78,4 +78,32 @@ To use the GRC file, simply load up GNURadio Companion, open the DSD.grc file an
 Unforunately SDRs are not 100% accruate. Click on the **Xlate-1** tab. It will display an FFT of the channel that you are trying to decode. Use **Fine Offset** slider to center the spike of your channel in the middle. You may need to adjust the **Gain** up or down to get it to play correctly. The gain slider adjusts the IF & BB gain used in the HackRF. You could tie it to the RF gain instead if you change the OsmoSDR Source block.
 
 ###Python Program
-The Python program is the same thing, except without the GUI. You can simply enter the values you used in the GRC program using the command line arguments. If you know how far off your SDR is in the frequency band you are interested, use the **-E** argument. This will let you use the actual frequencies for the channel you are trying to tune in. Again, make sure you tune in a center frequency that is slightly away from your target frequency. You will probably have to adjust the various Gain values to find something that works reliably. I have included some sample Shell Scripts that I use to tune in specific systems. 
+The Python program is the same thing, except without the GUI. You can simply enter the values you used in the GRC program using the command line arguments. If you know how far off your SDR is in the frequency band you are interested, use the **-E** argument. This will let you use the actual frequencies for the channel you are trying to tune in. Again, make sure you tune in a center frequency that is slightly away from your target frequency. You will probably have to adjust the various Gain values to find something that works reliably. I have included some sample Shell Scripts that I use to tune in specific systems.
+
+## Wideband sub-package: `dsd.wideband`
+
+An offline pipeline that ingests a folder of auto-split SDR recordings covering
+up to ~10 MHz, detects narrowband digital-voice signals (C4FM/P25, DMR, dPMR,
+TETRA), extracts each as a narrowband channel, routes supported protocols to
+the existing `dsd.block_ff` decoder, and flags encryption state.
+
+### Runtime dependencies (in addition to gr-dsd / mbelib)
+- `numpy`, `scipy`
+- optional: `pyyaml` (YAML configs), `matplotlib` (spectrogram PNGs),
+  `sigmf` (SigMF captures), `cryptography` (known-key DES decrypt),
+  `osmocom-tetra`'s `tetra-rx` on PATH (TETRA decoding).
+
+### Input formats supported
+`hackrf_int8`, `rtl_uint8`, `gqrx_fc32` / `cfile`, `SigMF` (`.sigmf-data` +
+`.sigmf-meta`), and 1/2-channel `WAV`. Auto-split files are stitched by
+lexicographic ordering and file-size gap detection.
+
+### Quick start
+```bash
+# Create or edit a config file (see python/wideband/example_config.json).
+python -m dsd.wideband ingest /path/to/captures --format hackrf_int8
+python -m dsd.wideband detect /path/to/captures --sample-rate 10e6
+python -m dsd.wideband run  my_config.json
+```
+
+See `python/wideband/example_config.json` for a complete template.
