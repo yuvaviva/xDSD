@@ -29,7 +29,11 @@
     "enable_tetra": false,
     "tetra_rx_binary": "tetra-rx",
     "enable_dpmr": false,
-    "workers": 2
+    "workers": 2,
+    "dsd_backend": "gr",
+    "dsd_binary": "dsd-fme",
+    "dsd_flavor": "dsd_fme",
+    "dsd_extra_args": []
   },
   "crypto": {
     "detect": true,

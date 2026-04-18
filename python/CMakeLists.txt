@@ -87,6 +87,7 @@ GR_PYTHON_INSTALL(
     FILES
     ${WIDEBAND_ROOT}/decode/__init__.py
     ${WIDEBAND_ROOT}/decode/dsd_runner.py
+    ${WIDEBAND_ROOT}/decode/dsdplus_runner.py
     ${WIDEBAND_ROOT}/decode/tetra_runner.py
     ${WIDEBAND_ROOT}/decode/dpmr_runner.py
     DESTINATION ${GR_PYTHON_DIR}/dsd/wideband/decode

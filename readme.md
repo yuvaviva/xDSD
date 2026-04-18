@@ -107,3 +107,28 @@ python -m dsd.wideband run  my_config.json
 ```
 
 See `python/wideband/example_config.json` for a complete template.
+
+### Decoder backends
+
+`decode.dsd_backend` in the config selects how the P25 / DMR family is
+decoded:
+
+- `"gr"` (default) — calls `dsd.block_ff` in-process via the gr-dsd GNU Radio
+  block. Requires the C++ side of this repo to be built successfully.
+- `"subprocess"` — shells out to an external DSD CLI (DSD+, DSDcc, dsd-fme,
+  szechyjs/dsd). This is the pragmatic choice on **Windows / radioconda**
+  where the gr-dsd C++ block does not build against GNU Radio 3.10. Set:
+
+  ```json
+  "decode": {
+    "dsd_backend": "subprocess",
+    "dsd_binary":  "C:\\\\Tools\\\\dsd-fme\\\\dsd-fme.exe",
+    "dsd_flavor":  "dsd_fme",
+    "dsd_extra_args": []
+  }
+  ```
+
+  Recognised flavors: `dsd_fme`, `dsd`, `dsdcc`, `dsdplus`. The runner writes
+  the 48 kHz discriminator as a temporary WAV, invokes the binary with
+  `-f<mode> -i <in.wav> -w <out.wav>`, reads the 8 kHz output WAV back, and
+  parses `NAC`, `algid`, `keyid`, and encryption evidence from its stdout.

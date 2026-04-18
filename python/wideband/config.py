@@ -46,6 +46,15 @@ class DecodeConfig:
     tetra_rx_binary: str = "tetra-rx"
     enable_dpmr: bool = False      # detection only; decode unsupported
     workers: int = 2
+    # Backend selection for the DSD-family decoder. "gr" uses the in-tree
+    # gr-dsd GNU Radio block (requires successful C++ build). "subprocess"
+    # shells out to an external DSD CLI (DSD+, DSDcc, dsd-fme, szechyjs/dsd)
+    # — the practical choice on Windows / radioconda GR 3.10 where the
+    # gr-dsd C++ block cannot be built.
+    dsd_backend: str = "gr"
+    dsd_binary: str = "dsd-fme"
+    dsd_flavor: str = "dsd_fme"
+    dsd_extra_args: List[str] = field(default_factory=list)
 
 
 @dataclass

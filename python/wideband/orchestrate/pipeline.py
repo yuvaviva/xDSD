@@ -22,6 +22,7 @@ from ..classify import classify_event
 from ..extract import extract_channel, fm_discriminator, resample_to
 from ..decode import (
     decode_with_dsd,
+    decode_with_dsd_subprocess,
     decode_with_tetra_rx,
     decode_dpmr_stub,
 )
@@ -104,19 +105,43 @@ def _process_event(cfg: WidebandConfig, event: SignalEvent,
     ):
         # Resample discriminator from bb_rate to 48 kHz for the DSD block.
         demod_48k = resample_to(demod.astype(np.float32), bb_rate, 48_000.0)
-        res = decode_with_dsd(demod_48k, label)
-        entry["decode"] = {
-            "mode": res.mode,
-            "ok": res.ok,
-            "error": res.error,
-        }
-        if cfg.output.write_wav and res.pcm_8k is not None:
-            wav_path = os.path.join(out_dir, "voice_8k.wav")
-            write_wav_int16(wav_path, res.pcm_8k, 8000)
-            entry["decode"]["wav"] = wav_path
-        if cfg.crypto.detect and label == "p25_c4fm":
-            state = probe_p25_encryption(res.algid, res.keyid)
-            entry["encryption"] = EncryptionReport(state=state).to_dict()
+        backend = (cfg.decode.dsd_backend or "gr").lower()
+        if backend == "subprocess":
+            sres = decode_with_dsd_subprocess(
+                demod_48k, label, out_dir,
+                binary=cfg.decode.dsd_binary,
+                flavor=cfg.decode.dsd_flavor,
+                extra_args=list(cfg.decode.dsd_extra_args or []),
+            )
+            entry["decode"] = {
+                "mode": sres.mode,
+                "ok": sres.ok,
+                "backend": "subprocess",
+                "flavor": sres.flavor,
+                "error": sres.error,
+            }
+            if sres.wav_path:
+                entry["decode"]["wav"] = sres.wav_path
+            if cfg.crypto.detect and label == "p25_c4fm":
+                state = probe_p25_encryption(sres.algid, sres.keyid)
+                if sres.encryption_evidence:
+                    state.evidence.extend(sres.encryption_evidence)
+                entry["encryption"] = EncryptionReport(state=state).to_dict()
+        else:
+            res = decode_with_dsd(demod_48k, label)
+            entry["decode"] = {
+                "mode": res.mode,
+                "ok": res.ok,
+                "backend": "gr",
+                "error": res.error,
+            }
+            if cfg.output.write_wav and res.pcm_8k is not None:
+                wav_path = os.path.join(out_dir, "voice_8k.wav")
+                write_wav_int16(wav_path, res.pcm_8k, 8000)
+                entry["decode"]["wav"] = wav_path
+            if cfg.crypto.detect and label == "p25_c4fm":
+                state = probe_p25_encryption(res.algid, res.keyid)
+                entry["encryption"] = EncryptionReport(state=state).to_dict()
     elif label == "tetra" and cfg.decode.enable_tetra:
         res = decode_with_tetra_rx(bb, bb_rate, out_dir,
                                    tetra_rx_bin=cfg.decode.tetra_rx_binary)
