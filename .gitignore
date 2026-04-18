@@ -18,3 +18,5 @@ get_swig_deps.py
 python_compile_helper.py
 /wideband_out/
 __pycache__/
+/build/
+*.egg-info/
