@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wideband-dmr-decoder"
+version = "0.1.0"
+description = "Offline wideband SDR pipeline: detect and decode C4FM/DMR/dPMR/TETRA from 10 MHz captures."
+readme = "README_WIDEBAND.md"
+requires-python = ">=3.8"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "Wideband_DMR_Decoder contributors" }]
+keywords = ["sdr", "dmr", "p25", "tetra", "dpmr", "dsd", "wideband",
+            "signal-detection", "digital-voice"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Telecommunications Industry",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python :: 3",
+  "Topic :: Communications :: Ham Radio",
+]
+dependencies = [
+  "numpy>=1.20",
+  "scipy>=1.6",
+]
+
+[project.optional-dependencies]
+yaml = ["pyyaml>=5"]
+plot = ["matplotlib>=3"]
+sigmf = ["sigmf>=1"]
+crypto = ["cryptography>=40"]
+test = ["pytest>=7"]
+all = [
+  "pyyaml>=5", "matplotlib>=3", "sigmf>=1",
+  "cryptography>=40", "pytest>=7",
+]
+
+[project.scripts]
+wideband-dmr = "dsd.wideband.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/yuvaviva/Wideband_DMR_Decoder"
+
+[tool.setuptools]
+# The repo's Python sources live in `python/` but need to be installed as
+# `dsd.wideband.*`. Map the top-level `dsd` package to `python/` and
+# enumerate the sub-packages explicitly since setuptools' discovery cannot
+# invent the `dsd.` prefix on its own.
+package-dir = { "dsd" = "python" }
+packages = [
+  "dsd",
+  "dsd.wideband",
+  "dsd.wideband.ingest",
+  "dsd.wideband.detect",
+  "dsd.wideband.classify",
+  "dsd.wideband.extract",
+  "dsd.wideband.decode",
+  "dsd.wideband.crypto",
+  "dsd.wideband.crypto.attacks",
+  "dsd.wideband.orchestrate",
+  "dsd.wideband.io",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["python/wideband/tests"]
