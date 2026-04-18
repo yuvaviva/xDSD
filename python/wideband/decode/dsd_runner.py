@@ -63,6 +63,13 @@ def decode_with_dsd(discriminator_48k: np.ndarray, mode: str) -> DsdDecodeResult
     if mode not in _MODE_TO_ENUM:
         return DsdDecodeResult(ok=False, pcm_8k=None, mode=mode,
                                error=f"Unknown mode: {mode}")
+    # The SWIG-wrapped dsd symbols are only present once the C++ block has
+    # been built and installed. Fall back to metadata-only decode otherwise.
+    if not (hasattr(dsd, _MODE_TO_ENUM[mode]) and hasattr(dsd, "block_ff")):
+        return DsdDecodeResult(
+            ok=False, pcm_8k=None, mode=mode,
+            error="dsd SWIG bindings not installed (build the gr-dsd C++ block first)",
+        )
     frame_enum = getattr(dsd, _MODE_TO_ENUM[mode])
     mod_enum = getattr(dsd, _MODE_TO_MOD[mode])
 
