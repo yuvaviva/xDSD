@@ -49,15 +49,19 @@ class DsdSubprocessResult:
 
 
 # Mode letter mappings per flavor. The value is the string appended after ``-f``.
+# Flag letters verified against the `dsd-fme -h` output ("dsd_fme" flavor) and
+# upstream szechyjs/dsd docs ("dsd" flavor). dsd-fme replaces szechyjs's `-fr`
+# (DMR) with `-fs` (DMR simplex) and adds `-fm` for dPMR.
 _MODE_TO_FLAG: Dict[str, Dict[str, str]] = {
     "dsd_fme": {
         "p25_c4fm": "1",
-        "dmr":      "r",
+        "dmr":      "s",
         "dstar":    "d",
         "nxdn48":   "i",
         "nxdn96":   "n",
         "provoice": "p",
         "x2_tdma":  "x",
+        "dpmr":     "m",
         "auto":     "a",
     },
     "dsd": {

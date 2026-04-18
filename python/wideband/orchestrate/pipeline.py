@@ -151,8 +151,32 @@ def _process_event(cfg: WidebandConfig, event: SignalEvent,
             state = probe_tetra_encryption(res.raw_log.splitlines())
             entry["encryption"] = EncryptionReport(state=state).to_dict()
     elif label == "dpmr":
-        res = decode_dpmr_stub(demod)
-        entry["decode"] = {"mode": "dpmr", "ok": res.ok, "note": res.note}
+        # dsd-fme supports dPMR (-fm); route to the subprocess runner when the
+        # selected flavor has a mapping, else fall back to the detect-only stub.
+        from ..decode.dsdplus_runner import _MODE_TO_FLAG
+        backend = (cfg.decode.dsd_backend or "gr").lower()
+        if (backend == "subprocess"
+                and cfg.decode.dsd_flavor in _MODE_TO_FLAG
+                and "dpmr" in _MODE_TO_FLAG[cfg.decode.dsd_flavor]):
+            demod_48k = resample_to(demod.astype(np.float32), bb_rate, 48_000.0)
+            sres = decode_with_dsd_subprocess(
+                demod_48k, "dpmr", out_dir,
+                binary=cfg.decode.dsd_binary,
+                flavor=cfg.decode.dsd_flavor,
+                extra_args=list(cfg.decode.dsd_extra_args or []),
+            )
+            entry["decode"] = {
+                "mode": "dpmr",
+                "ok": sres.ok,
+                "backend": "subprocess",
+                "flavor": sres.flavor,
+                "error": sres.error,
+            }
+            if sres.wav_path:
+                entry["decode"]["wav"] = sres.wav_path
+        else:
+            res = decode_dpmr_stub(demod)
+            entry["decode"] = {"mode": "dpmr", "ok": res.ok, "note": res.note}
     else:
         entry["decode"] = {"mode": label, "ok": False,
                            "note": "decoder disabled or classification unknown"}
