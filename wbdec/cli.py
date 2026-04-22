@@ -119,7 +119,40 @@ def _cmd_channelize(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
-# placeholders for M3+
+# decode (M3)
+# ---------------------------------------------------------------------------
+
+def _cmd_decode(args: argparse.Namespace) -> int:
+    from .decode.run import run_decode
+    cfg = _config_from_args(args)
+    if args.out:
+        cfg.out_dir = args.out
+    summary = run_decode(cfg, channels_dir=args.channels_dir,
+                         workers=args.workers)
+    print(f"channels: {summary['num_channels']}   "
+          f"decoded ok: {summary['num_decoded']}   "
+          f"skipped: {summary['num_skipped']}")
+    shown = 0
+    for eid, r in summary["results"].items():
+        if shown >= 20:
+            break
+        shown += 1
+        line = (f"  {eid}  {r['protocol']:<10} via {r['adapter']:<12} "
+                f"ok={r['ok']!s:<5} frames={r['n_frames']}")
+        if r.get("nac") is not None:
+            line += f"  nac=0x{r['nac']:X}"
+        if r.get("algid") is not None:
+            line += f"  algid=0x{r['algid']:02X}"
+        if r.get("error"):
+            line += f"  err={r['error']}"
+        print(line)
+    if summary["num_channels"] > shown:
+        print(f"  ... {summary['num_channels'] - shown} more channels in decode.json")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# placeholders for M4+
 # ---------------------------------------------------------------------------
 
 def _cmd_not_implemented(stage: str):
@@ -170,8 +203,20 @@ def build_parser() -> argparse.ArgumentParser:
     p_ch.add_argument("--out", default=None)
     p_ch.set_defaults(func=_cmd_channelize)
 
-    # M3+
-    for stage in ("decode", "analyze", "run"):
+    # decode (M3)
+    p_dec = sub.add_parser("decode", help="run the right decoder on each channel")
+    p_dec.add_argument("folder", nargs="?")
+    p_dec.add_argument("--config", default=None)
+    p_dec.add_argument("--sample-rate", type=float, default=None)
+    p_dec.add_argument("--center-hz", type=float, default=None)
+    p_dec.add_argument("--format", default=None)
+    p_dec.add_argument("--channels-dir", default=None)
+    p_dec.add_argument("--out", default=None)
+    p_dec.add_argument("--workers", type=int, default=None)
+    p_dec.set_defaults(func=_cmd_decode)
+
+    # M4+
+    for stage in ("analyze", "run"):
         sp = sub.add_parser(stage, help=f"{stage} — not implemented yet")
         sp.set_defaults(func=_cmd_not_implemented(stage))
 
