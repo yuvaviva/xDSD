@@ -96,7 +96,30 @@ def _cmd_survey(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
-# placeholders for M2+
+# channelize (M2)
+# ---------------------------------------------------------------------------
+
+def _cmd_channelize(args: argparse.Namespace) -> int:
+    from .channelize.run import run_channelize
+    cfg = _config_from_args(args)
+    if args.out:
+        cfg.out_dir = args.out
+    metas = run_channelize(cfg, survey_path=args.survey)
+    print(f"channelized {len(metas)} event(s) into "
+          f"{os.path.join(cfg.out_dir, cfg.channelize.out_dir)}/")
+    for eid, meta in list(metas.items())[:20]:
+        g = meta["global"]
+        print(f"  {eid}  {g.get('wbdec:label') or '?':<10} "
+              f"{g['core:sample_rate']/1e3:7.2f} ksps  "
+              f"{g['wbdec:samples']:>8,} samples  "
+              f"rrc={g['wbdec:rrc_applied']}")
+    if len(metas) > 20:
+        print(f"  ... {len(metas) - 20} more channels")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# placeholders for M3+
 # ---------------------------------------------------------------------------
 
 def _cmd_not_implemented(stage: str):
@@ -134,8 +157,21 @@ def build_parser() -> argparse.ArgumentParser:
     p_sv.add_argument("--out", default=None)
     p_sv.set_defaults(func=_cmd_survey)
 
-    # M2+
-    for stage in ("channelize", "decode", "analyze", "run"):
+    # channelize (M2)
+    p_ch = sub.add_parser("channelize",
+                          help="extract each surveyed event as a SigMF channel file")
+    p_ch.add_argument("folder", nargs="?")
+    p_ch.add_argument("--config", default=None)
+    p_ch.add_argument("--sample-rate", type=float, default=None)
+    p_ch.add_argument("--center-hz", type=float, default=None)
+    p_ch.add_argument("--format", default=None)
+    p_ch.add_argument("--survey", default=None,
+                      help="path to survey.json (default: <out>/survey.json)")
+    p_ch.add_argument("--out", default=None)
+    p_ch.set_defaults(func=_cmd_channelize)
+
+    # M3+
+    for stage in ("decode", "analyze", "run"):
         sp = sub.add_parser(stage, help=f"{stage} — not implemented yet")
         sp.set_defaults(func=_cmd_not_implemented(stage))
 
