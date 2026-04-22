@@ -16,11 +16,15 @@ P25_ALG = {
     0xAA: "ARC4",
 }
 
-# DMR PI-header algorithm IDs.
+# DMR PI-header algorithm IDs. We also include 0x80 ("clear" in the P25
+# convention) because dsd-fme often stamps generic algid=0x80 lines on DMR
+# voice bursts, which would otherwise mis-flag a clear DMR channel as
+# UNKNOWN-encrypted.
 DMR_ALG = {
     0x00: "CLEAR",
     0x21: "BASIC-PRIVACY",
     0x25: "ARC4",
+    0x80: "CLEAR",
     0x84: "AES",
 }
 

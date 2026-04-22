@@ -56,7 +56,7 @@ def probe_dmr_frames(frames: Iterable[dict]) -> EncryptionFinding:
         return EncryptionFinding(encrypted=False,
                                  evidence=["no DMR PI header observed"])
     name = DMR_ALG.get(first_algid, f"UNKNOWN(0x{first_algid:02X})")
-    is_clear = first_algid == 0x00
+    is_clear = first_algid in (0x00, 0x80)
     return EncryptionFinding(
         encrypted=not is_clear,
         algorithm=None if is_clear else name,

@@ -78,6 +78,11 @@ def _row(c: ChannelReport, out_dir: str) -> str:
     nac = f"0x{c.nac:X}" if c.nac is not None else "—"
     bw = f"{c.bw_hz/1e3:.1f} kHz"
     duration = f"{c.duration_s:.2f} s"
+    tg = (f"TG {c.talkgroup_id}"
+          if getattr(c, "talkgroup_id", None) is not None else "")
+    sid = (f"SRC {c.source_id}"
+           if getattr(c, "source_id", None) is not None else "")
+    trunking_cell = "<br>".join(p for p in (tg, sid) if p) or "—"
 
     return f"""
       <tr{cls}>
@@ -93,6 +98,7 @@ def _row(c: ChannelReport, out_dir: str) -> str:
         <td>{enc_badge}<br>{evidence}</td>
         <td>NAC {nac}<br>
             key {html.escape(keyid)}</td>
+        <td>{trunking_cell}</td>
         <td>{wav_cell}</td>
       </tr>
     """
@@ -120,6 +126,8 @@ def render_html(report: Report) -> str:
           <div class="v">{report.center_hz/1e6:.4f} MHz</div></div>
         <div class="stat"><div class="k">Span</div>
           <div class="v">{report.sample_rate_hz/1e6:.2f} MHz</div></div>
+        <div class="stat"><div class="k">Trunking events</div>
+          <div class="v">{len(getattr(report, "trunking_events", []) or [])}</div></div>
       </div>
     """
 
@@ -140,7 +148,7 @@ def render_html(report: Report) -> str:
     <tr>
       <th>Event</th><th>Frequency</th><th>Protocol</th><th>Kind</th>
       <th>BW</th><th>SNR</th><th>Timing</th><th>Decoder</th>
-      <th>Encryption</th><th>IDs</th><th>Play</th>
+      <th>Encryption</th><th>IDs</th><th>Trunking</th><th>Play</th>
     </tr>
   </thead>
   <tbody>

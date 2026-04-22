@@ -47,6 +47,12 @@ class ChannelReport:
 
     encryption: EncryptionFinding
 
+    # Trunking annotations (filled in by the trunking annotator post-aggregate;
+    # default to None when no trunking signalling was observed).
+    talkgroup_id: Optional[int] = None
+    source_id: Optional[int] = None
+    granted_by_event_id: Optional[str] = None
+
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
         d["encryption"] = self.encryption.to_dict()
@@ -64,6 +70,8 @@ class Report:
     num_decoded: int
     num_encrypted: int
     channels: List[ChannelReport] = field(default_factory=list)
+    # Populated by the trunking annotator after aggregate(); defaults to [].
+    trunking_events: List[Any] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -76,6 +84,10 @@ class Report:
             "num_decoded":       self.num_decoded,
             "num_encrypted":     self.num_encrypted,
             "channels":          [c.to_dict() for c in self.channels],
+            "trunking_events":   [
+                e.to_dict() if hasattr(e, "to_dict") else e
+                for e in (self.trunking_events or [])
+            ],
         }
 
 

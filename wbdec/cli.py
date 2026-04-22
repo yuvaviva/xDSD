@@ -171,7 +171,29 @@ def _cmd_analyze(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
-# placeholders for M5+
+# run (M5) — full end-to-end pipeline
+# ---------------------------------------------------------------------------
+
+def _cmd_run(args: argparse.Namespace) -> int:
+    from .orchestrate.pipeline import run_pipeline
+    cfg = load_config(args.config)
+    if args.out:
+        cfg.out_dir = args.out
+    result = run_pipeline(cfg)
+    print(f"survey events:     {result.survey_events}")
+    print(f"channels:          {result.channels}")
+    print(f"decoded ok:        {result.decoded_ok}")
+    print(f"encrypted:         {result.encrypted}")
+    print(f"trunking events:   {result.trunking_events}")
+    print(f"out_dir:           {result.out_dir}")
+    print(f"  report.json:     {os.path.join(result.out_dir, 'report.json')}")
+    print(f"  report.html:     {os.path.join(result.out_dir, 'report.html')}")
+    print(f"  playlist:        {os.path.join(result.out_dir, cfg.decode.out_dir, 'index.m3u')}")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# placeholders (none left)
 # ---------------------------------------------------------------------------
 
 def _cmd_not_implemented(stage: str):
@@ -244,10 +266,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_an.add_argument("--out", default=None)
     p_an.set_defaults(func=_cmd_analyze)
 
-    # M5
-    for stage in ("run",):
-        sp = sub.add_parser(stage, help=f"{stage} — not implemented yet")
-        sp.set_defaults(func=_cmd_not_implemented(stage))
+    # run (M5) — full end-to-end
+    p_run = sub.add_parser("run",
+                           help="run all five stages back-to-back from a config")
+    p_run.add_argument("config")
+    p_run.add_argument("--out", default=None)
+    p_run.set_defaults(func=_cmd_run)
 
     return p
 

@@ -45,6 +45,17 @@ _RE_DMR_VOICE = re.compile(r"(?i)Voice (Frame|Burst)|VC(6|5|4|3|2|1)")
 _RE_ENCRYPT_LINE = re.compile(
     r"(?i)(encrypted|encryption|ADP|ARC4|AES|DES-OFB|PI header|cipher)"
 )
+# Trunking-related fields surfaced by dsd-fme's stdout. These are protocol-
+# agnostic — the trunking module disambiguates P25 vs DMR via context.
+_RE_TG    = re.compile(r"(?i)\b(?:TG|TGID|talkgroup|target)[^0-9a-fx]*"
+                       r"(0x[0-9a-f]+|\d+)")
+_RE_SRC   = re.compile(r"(?i)\b(?:SRC|SUID|source|RID)[^0-9a-fx]*"
+                       r"(0x[0-9a-f]+|\d+)")
+_RE_LCN   = re.compile(r"(?i)\bLCN[^0-9a-fx]*(0x[0-9a-f]+|\d+)")
+_RE_FREQ_MHZ = re.compile(r"(?i)\bfreq[^0-9.]*([0-9]+\.[0-9]+)\s*MHz")
+_RE_GRANT = re.compile(r"(?i)(channel grant|voice channel|group voice|TSBK|"
+                       r"CSBK|grant|update)")
+_RE_PDU   = re.compile(r"(?i)\bPDU\s*(?:0x([0-9a-f]+)|(\d+))\b")
 
 
 def _parse_hex_or_dec(tok: str) -> Optional[int]:
@@ -70,7 +81,9 @@ def _parse_log(log: str, duration_s: float) -> Tuple[
         if (_RE_HDU.search(ln) or _RE_LDU.search(ln)
                 or _RE_DMR_VOICE.search(ln)
                 or _RE_NAC.search(ln) or _RE_ALGID.search(ln)
-                or _RE_ENCRYPT_LINE.search(ln)):
+                or _RE_ENCRYPT_LINE.search(ln)
+                or _RE_GRANT.search(ln) or _RE_TG.search(ln)
+                or _RE_LCN.search(ln) or _RE_FREQ_MHZ.search(ln)):
             interesting.append((i, ln))
     if not interesting:
         return records, first_nac, first_algid, first_keyid
@@ -85,9 +98,35 @@ def _parse_log(log: str, duration_s: float) -> Tuple[
             ftype = f"P25_LDU{m.group(1) or ''}".strip()
         elif _RE_DMR_VOICE.search(ln):
             ftype = "DMR_VOICE"
+        elif _RE_GRANT.search(ln):
+            ftype = "TRUNKING_GRANT"
+        elif _RE_TG.search(ln) or _RE_LCN.search(ln):
+            ftype = "TRUNKING_INFO"
         elif _RE_ENCRYPT_LINE.search(ln):
             ftype = "ENCRYPTION_EVIDENCE"
         extras = {"log_line": ln.strip()[:240]}
+        if m := _RE_TG.search(ln):
+            v = _parse_hex_or_dec(m.group(1))
+            if v is not None:
+                extras["talkgroup_id"] = v
+        if m := _RE_SRC.search(ln):
+            v = _parse_hex_or_dec(m.group(1))
+            if v is not None:
+                extras["source_id"] = v
+        if m := _RE_LCN.search(ln):
+            v = _parse_hex_or_dec(m.group(1))
+            if v is not None:
+                extras["lcn"] = v
+        if m := _RE_FREQ_MHZ.search(ln):
+            try:
+                extras["grant_freq_hz"] = float(m.group(1)) * 1e6
+            except ValueError:
+                pass
+        if m := _RE_PDU.search(ln):
+            tok = m.group(1) or m.group(2)
+            v = _parse_hex_or_dec(("0x" + tok) if m.group(1) else tok)
+            if v is not None:
+                extras["pdu"] = v
         if m := _RE_NAC.search(ln):
             v = _parse_hex_or_dec(m.group(1))
             if v is not None:

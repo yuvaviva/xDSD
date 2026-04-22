@@ -19,10 +19,46 @@ from ..capture.splits import SplitSet
 from ..capture.sigmf_view import VirtualSigMF, write_view_meta
 from ..config import Config
 from .cfar import ca_cfar_mask, group_peaks
+from .classifier import classify_from_features
+from .features import extract_all
 from .psd_stream import freq_axis, welch_frame
 from .schema import SurveyEvent, SurveyResult
 from .tracker_burst import BurstTracker
 from .tracker_continuous import ContinuousTracker
+
+
+def _quick_classify(frame_iq: np.ndarray, sample_rate_hz: float,
+                    center_hz: float, source_center_hz: float,
+                    bw_hz: float) -> tuple[str, float]:
+    """Coarse single-frame classification for label-population in run_survey.
+
+    Shifts ``frame_iq`` by ``center_hz - source_center_hz``, low-passes with
+    a windowed-sinc FIR, decimates to ~50 ksps, runs the FM discriminator,
+    and feeds the cyclostationary / level / envelope features to the
+    rule-based classifier. This is fast (one FFT-convolve per event) and
+    accurate enough to drive decoder selection in stage 4.
+    """
+    from scipy.signal import fftconvolve, firwin
+    n = frame_iq.size
+    if n < 1024:
+        return "unknown", 0.0
+    offset = center_hz - source_center_hz
+    t = np.arange(n, dtype=np.float32)
+    shifted = (frame_iq * np.exp(-2j * np.pi * offset * t / sample_rate_hz)
+               ).astype(np.complex64)
+    cutoff = max(bw_hz * 1.5, 12_500.0)
+    nyq = sample_rate_hz / 2.0
+    cutoff = min(cutoff, nyq * 0.95)
+    taps = firwin(129, cutoff / nyq, window="hamming").astype(np.float32)
+    bb = fftconvolve(shifted, taps.astype(np.complex64), mode="same")
+    dec = max(1, int(sample_rate_hz // 50_000))
+    bb = bb[::dec]
+    bb_rate = sample_rate_hz / dec
+    if bb.size < 512:
+        return "unknown", 0.0
+    demod = np.angle(np.conj(bb[:-1]) * bb[1:]).astype(np.float32)
+    feats = extract_all(bb.astype(np.complex64), bb_rate, demod)
+    return classify_from_features(feats, kind="continuous")
 
 
 def _save_psd_png(path: str, avg_psd: np.ndarray, freqs_hz: np.ndarray,
@@ -89,6 +125,10 @@ def run_survey(cfg: Config, out_dir: Optional[str] = None) -> SurveyResult:
     running_psd = np.zeros(nperseg, dtype=np.float64)
     num_frames = 0
     buf = np.empty(0, dtype=np.complex64)
+    # Per-event-bin label cache populated on first sighting; merge tolerance
+    # matches the trackers' merge tolerance so labels follow tracks.
+    label_cache: dict[int, tuple[str, float]] = {}
+    bin_hz = cfg.survey.merge_freq_tol_hz
     for _, _, chunk in ss.iter_chunks(cfg.capture.chunk_samples):
         buf = np.concatenate([buf, chunk]) if buf.size else chunk
         while buf.size >= frame_samples:
@@ -109,6 +149,15 @@ def run_survey(cfg: Config, out_dir: Optional[str] = None) -> SurveyResult:
                 ])
                 noise = float(noise_band.mean()) if noise_band.size else 1e-20
                 detections.append((center, bw, peak, noise))
+                # Classify on first observation only.
+                key = int(round(center / bin_hz))
+                if key not in label_cache:
+                    try:
+                        label_cache[key] = _quick_classify(
+                            frame, ss.sample_rate_hz, center,
+                            ss.center_hz, bw)
+                    except Exception:
+                        label_cache[key] = ("unknown", 0.0)
             cont.update(num_frames - 1, detections)
             burst.update(num_frames - 1, detections)
 
@@ -125,6 +174,13 @@ def run_survey(cfg: Config, out_dir: Optional[str] = None) -> SurveyResult:
     events.extend(cont.events())
     events.extend(burst.events())
     events.sort(key=lambda e: (e.t_start_s, e.center_hz))
+
+    # Apply cached labels (snapshot taken on first detection).
+    for ev in events:
+        key = int(round(ev.center_hz / bin_hz))
+        label, conf = label_cache.get(key, ("unknown", 0.0))
+        ev.label = label
+        ev.label_confidence = conf
 
     avg_psd = (running_psd / max(num_frames, 1)).astype(np.float32)
     _save_psd_png(os.path.join(out_dir, "psd.png"), avg_psd, freqs,

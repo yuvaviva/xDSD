@@ -16,6 +16,10 @@ def run_analyze(cfg: Config, out_dir: Optional[str] = None) -> Report:
     out_dir = out_dir or cfg.out_dir
     report = aggregate(out_dir)
 
+    # Trunking annotation: enrich channels + attach event list.
+    from ..trunking.annotator import attach_to_report
+    attach_to_report(report)
+
     # JSON — full structured dump.
     with open(os.path.join(out_dir, "report.json"), "w") as fh:
         json.dump(report.to_dict(), fh, indent=2, default=_json_default)
