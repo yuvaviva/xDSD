@@ -152,7 +152,26 @@ def _cmd_decode(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
-# placeholders for M4+
+# analyze (M4)
+# ---------------------------------------------------------------------------
+
+def _cmd_analyze(args: argparse.Namespace) -> int:
+    from .analyze.run import run_analyze
+    cfg = _config_from_args(args)
+    if args.out:
+        cfg.out_dir = args.out
+    report = run_analyze(cfg)
+    print(f"channels: {report.num_channels}   decoded: {report.num_decoded}   "
+          f"encrypted: {report.num_encrypted}")
+    print(f"report.json: {os.path.join(cfg.out_dir, 'report.json')}")
+    if cfg.analyze.write_html:
+        print(f"report.html: {os.path.join(cfg.out_dir, 'report.html')}")
+    print(f"playlist:    {os.path.join(cfg.out_dir, cfg.decode.out_dir, 'index.m3u')}")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# placeholders for M5+
 # ---------------------------------------------------------------------------
 
 def _cmd_not_implemented(stage: str):
@@ -215,8 +234,18 @@ def build_parser() -> argparse.ArgumentParser:
     p_dec.add_argument("--workers", type=int, default=None)
     p_dec.set_defaults(func=_cmd_decode)
 
-    # M4+
-    for stage in ("analyze", "run"):
+    # analyze (M4)
+    p_an = sub.add_parser("analyze", help="aggregate stages 1–4 → report.html / report.json")
+    p_an.add_argument("folder", nargs="?")
+    p_an.add_argument("--config", default=None)
+    p_an.add_argument("--sample-rate", type=float, default=None)
+    p_an.add_argument("--center-hz", type=float, default=None)
+    p_an.add_argument("--format", default=None)
+    p_an.add_argument("--out", default=None)
+    p_an.set_defaults(func=_cmd_analyze)
+
+    # M5
+    for stage in ("run",):
         sp = sub.add_parser(stage, help=f"{stage} — not implemented yet")
         sp.set_defaults(func=_cmd_not_implemented(stage))
 
