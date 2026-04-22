@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wbdec"
+version = "0.1.0"
+description = "Wideband digital-voice decoder: offline pipeline for C4FM/DMR/dPMR/TETRA detection and decoding from 10 MHz SDR captures."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "wbdec contributors" }]
+keywords = ["sdr", "dmr", "p25", "tetra", "dpmr", "wideband", "dsd"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Topic :: Communications :: Ham Radio",
+]
+dependencies = [
+  "numpy>=1.20",
+  "scipy>=1.6",
+]
+
+[project.optional-dependencies]
+plot  = ["matplotlib>=3"]
+yaml  = ["pyyaml>=5"]
+sigmf = ["sigmf>=1"]
+ml    = ["onnxruntime>=1.14"]
+test  = ["pytest>=7"]
+all   = ["matplotlib>=3", "pyyaml>=5", "sigmf>=1", "pytest>=7"]
+
+[project.scripts]
+wbdec = "wbdec.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["wbdec*"]
+exclude = ["wbdec.tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["wbdec/tests"]
